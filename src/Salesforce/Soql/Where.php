@@ -10,32 +10,32 @@ use App\Salesforce\Soql\Condition\Condition;
 
 final readonly class Where
 {
-    public static function equals(string $column, string|int|bool|null $value): Compare
+    public static function equals(string $column, string|int|\UnitEnum|bool|null $value): Compare
     {
         return new Compare($column, CompareOperator::EQUALS, $value);
     }
 
-    public static function notEquals(string $column, string|int|bool|null $value): Compare
+    public static function notEquals(string $column, string|int|\UnitEnum|bool|null $value): Compare
     {
         return new Compare($column, CompareOperator::NOT_EQUALS, $value);
     }
 
-    public static function greater(string $column, string|int $value): Compare
+    public static function greater(string $column, string|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::GREATER, $value);
     }
 
-    public static function greaterEqual(string $column, string|int $value): Compare
+    public static function greaterEqual(string $column, string|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::GREATER_EQUALS, $value);
     }
 
-    public static function less(string $column, string|int $value): Compare
+    public static function less(string $column, string|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::LESS, $value);
     }
 
-    public static function lessEquals(string $column, string|int $value): Compare
+    public static function lessEquals(string $column, string|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::LESS_EQUALS, $value);
     }

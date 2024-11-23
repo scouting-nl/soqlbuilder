@@ -5,6 +5,9 @@ namespace App\Tests\Salesforce\Soql;
 use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use App\Salesforce\Soql\Condition\Condition;
+use App\Tests\Salesforce\Soql\Enum\TestEnum;
+use App\Tests\Salesforce\Soql\Enum\TestIntEnum;
+use App\Tests\Salesforce\Soql\Enum\TestStringEnum;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -70,6 +73,21 @@ class CompareTest extends TestCase
             yield [
                 "c {$operator->value} -10",
                 new Compare('c', $operator, -10),
+            ];
+
+            yield [
+                "c {$operator->value} 'T1'",
+                new Compare('c', $operator, TestEnum::T1),
+            ];
+
+            yield [
+                "c {$operator->value} 2",
+                new Compare('c', $operator, TestIntEnum::I2),
+            ];
+
+            yield [
+                "c {$operator->value} 'str1'",
+                new Compare('c', $operator, TestStringEnum::STR1),
             ];
         }
     }
