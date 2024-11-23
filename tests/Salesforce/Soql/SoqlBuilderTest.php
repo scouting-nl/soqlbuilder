@@ -97,6 +97,22 @@ class SoqlBuilderTest extends TestCase
         ];
 
         yield [
+            "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(Where::equals('a', 'v1'))
+                ->andWhere(Where::equals('b', 'v2')),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->andWhere(Where::equals('a', 'v1'))
+                ->andWhere(Where::equals('b', 'v2')),
+        ];
+
+        yield [
             "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
             SoqlBuilder::select('Object')->columns('Id')->where(
                 Where::equals('a', 'v1'),
@@ -110,6 +126,26 @@ class SoqlBuilderTest extends TestCase
                     Where::greaterEqual('d', -10),
                 ),
             ),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(
+                    Where::equals('a', 'v1'),
+                    Where::greater('b', 10),
+                )
+                ->andWhere(
+                    Where::orX(
+                        Where::andX(
+                            Where::equals('e', null),
+                            Where::notEquals('f', false),
+                        ),
+                        Where::less('c', 'v3'),
+                        Where::greaterEqual('d', -10),
+                    ),
+                ),
         ];
     }
 
