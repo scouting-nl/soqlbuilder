@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Salesforce\Soql;
+namespace App\Tests\Salesforce\Soql\Comparing;
 
 use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
