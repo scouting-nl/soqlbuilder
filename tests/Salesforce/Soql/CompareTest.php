@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Tests\Salesforce\Soql;
 
@@ -25,32 +26,32 @@ class CompareTest extends TestCase
     public static function provideConditions(): \Generator
     {
         yield [
-            "c = NULL",
+            'c = NULL',
             new Compare('c', CompareOperator::EQUALS, null),
         ];
 
         yield [
-            "c != NULL",
+            'c != NULL',
             new Compare('c', CompareOperator::NOT_EQUALS, null),
         ];
 
         yield [
-            "c = TRUE",
+            'c = TRUE',
             new Compare('c', CompareOperator::EQUALS, true),
         ];
 
         yield [
-            "c != TRUE",
+            'c != TRUE',
             new Compare('c', CompareOperator::NOT_EQUALS, true),
         ];
 
         yield [
-            "c = FALSE",
+            'c = FALSE',
             new Compare('c', CompareOperator::EQUALS, false),
         ];
 
         yield [
-            "c != FALSE",
+            'c != FALSE',
             new Compare('c', CompareOperator::NOT_EQUALS, false),
         ];
 
@@ -102,7 +103,7 @@ class CompareTest extends TestCase
     }
 
     /**
-     * @return \Generator<array-key, array{CompareOperator, bool}>
+     * @return \Generator<array-key, array{CompareOperator}>
      */
     public static function provideOperatorsThatDontAllowNull(): \Generator
     {

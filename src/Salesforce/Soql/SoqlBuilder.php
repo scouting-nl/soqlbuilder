@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Salesforce\Soql;
 
@@ -9,20 +10,25 @@ final readonly class SoqlBuilder implements \Stringable
 {
     private function __construct(
         /** @var non-empty-list<string|self> */
-        private array $columns = [],
+        private array $columns,
         private ?string $object = null,
+        /** @var list<Condition> */
         private array $conditions = [],
     ) {
     }
 
     public static function select(string|self $column, string|self ...$columns): self
     {
-        return new self([$column, ...$columns]);
+        return new self([$column, ...\array_values($columns)]);
     }
 
     public function addSelect(string|self $column, string|self ...$columns): self
     {
-        return new self(\array_merge($this->columns, [$column], $columns), $this->object, $this->conditions);
+        return new self(
+            \array_merge($this->columns, [$column], \array_values($columns)),
+            $this->object,
+            $this->conditions,
+        );
     }
 
     public function from(string $object): self
@@ -32,12 +38,16 @@ final readonly class SoqlBuilder implements \Stringable
 
     public function where(Condition $condition, Condition ...$conditions): self
     {
-        return new self($this->columns, $this->object, [$condition, ...$conditions]);
+        return new self($this->columns, $this->object, [$condition, ...\array_values($conditions)]);
     }
 
     public function andWhere(Condition $condition, Condition ...$conditions): self
     {
-        return new self($this->columns, $this->object, \array_merge($this->conditions, [$condition], $conditions));
+        return new self(
+            $this->columns,
+            $this->object,
+            \array_merge($this->conditions, [$condition], \array_values($conditions)),
+        );
     }
 
     public function toSoql(): string

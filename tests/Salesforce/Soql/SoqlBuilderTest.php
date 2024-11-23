@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Tests\Salesforce\Soql;
 
-use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\SoqlBuilder;
 use App\Salesforce\Soql\Where;
 use PHPUnit\Framework\Attributes\DataProvider;
