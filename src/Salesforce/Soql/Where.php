@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Salesforce\Soql;
+
+use App\Salesforce\Soql\Condition\Combining\_And;
+use App\Salesforce\Soql\Condition\Combining\_Or;
+use App\Salesforce\Soql\Condition\Comparing\Compare;
+use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
+use App\Salesforce\Soql\Condition\Condition;
+
+final readonly class Where
+{
+    public static function equals(string $column, string|int|bool|null $value): Compare
+    {
+        return new Compare($column, CompareOperator::EQUALS, $value);
+    }
+
+    public static function notEquals(string $column, string|int|bool|null $value): Compare
+    {
+        return new Compare($column, CompareOperator::NOT_EQUALS, $value);
+    }
+
+    public static function greater(string $column, string|int $value): Compare
+    {
+        return new Compare($column, CompareOperator::GREATER, $value);
+    }
+
+    public static function greaterEqual(string $column, string|int $value): Compare
+    {
+        return new Compare($column, CompareOperator::GREATER_EQUALS, $value);
+    }
+
+    public static function less(string $column, string|int $value): Compare
+    {
+        return new Compare($column, CompareOperator::LESS, $value);
+    }
+
+    public static function lessEquals(string $column, string|int $value): Compare
+    {
+        return new Compare($column, CompareOperator::LESS_EQUALS, $value);
+    }
+
+    public static function andX(Condition $condition, Condition ...$conditions): _And
+    {
+        return new _And($condition, ...$conditions);
+    }
+
+    public static function orX(Condition $condition, Condition ...$conditions): _Or
+    {
+        return new _Or($condition, ...$conditions);
+    }
+}

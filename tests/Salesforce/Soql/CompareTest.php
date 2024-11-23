@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Tests\Salesforce\Soql;
+
+use App\Salesforce\Soql\Condition\Comparing\Compare;
+use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
+use App\Salesforce\Soql\Condition\Condition;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+class CompareTest extends TestCase
+{
+    #[DataProvider('provideConditions')]
+    public function testCompare(string $expected, Condition $condition): void
+    {
+        self::assertEquals($expected, (string)$condition);
+    }
+
+    /**
+     * @return \Generator<array-key, array{string, Condition}>
+     */
+    public static function provideConditions(): \Generator
+    {
+        yield [
+            "c = NULL",
+            new Compare('c', CompareOperator::EQUALS, null),
+        ];
+
+        yield [
+            "c != NULL",
+            new Compare('c', CompareOperator::NOT_EQUALS, null),
+        ];
+
+        yield [
+            "c = TRUE",
+            new Compare('c', CompareOperator::EQUALS, true),
+        ];
+
+        yield [
+            "c != TRUE",
+            new Compare('c', CompareOperator::NOT_EQUALS, true),
+        ];
+
+        yield [
+            "c = FALSE",
+            new Compare('c', CompareOperator::EQUALS, false),
+        ];
+
+        yield [
+            "c != FALSE",
+            new Compare('c', CompareOperator::NOT_EQUALS, false),
+        ];
+
+        foreach (CompareOperator::cases() as $operator) {
+            yield [
+                "c {$operator->value} ''",
+                new Compare('c', $operator, ''),
+            ];
+
+            yield [
+                "c {$operator->value} 'value'",
+                new Compare('c', $operator, 'value'),
+            ];
+
+            yield [
+                "c {$operator->value} 10",
+                new Compare('c', $operator, 10),
+            ];
+
+            yield [
+                "c {$operator->value} -10",
+                new Compare('c', $operator, -10),
+            ];
+        }
+    }
+
+    #[DataProvider('provideOperatorsThatDontAllowNull')]
+    public function testComparingNullFails(CompareOperator $operator): void
+    {
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage('NULL is only allowed for equal or not equal comparison');
+
+        new Compare('c', $operator, null);
+    }
+
+    /**
+     * @return \Generator<array-key, array{CompareOperator, bool}>
+     */
+    public static function provideOperatorsThatDontAllowNull(): \Generator
+    {
+        foreach (CompareOperator::cases() as $operator) {
+            if (!\in_array($operator, [CompareOperator::EQUALS, CompareOperator::NOT_EQUALS], true)) {
+                yield [$operator];
+            }
+        }
+    }
+
+    #[DataProvider('provideOperatorsThatDontAllowBoolean')]
+    public function testComparingBooleanFails(CompareOperator $operator, bool $value): void
+    {
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage('Booleans are only allowed for equal or not equal comparison');
+
+        new Compare('c', $operator, $value);
+    }
+
+    /**
+     * @return \Generator<array-key, array{CompareOperator, bool}>
+     */
+    public static function provideOperatorsThatDontAllowBoolean(): \Generator
+    {
+        foreach (CompareOperator::cases() as $operator) {
+            if (!\in_array($operator, [CompareOperator::EQUALS, CompareOperator::NOT_EQUALS], true)) {
+                yield [$operator, true];
+                yield [$operator, false];
+            }
+        }
+    }
+}

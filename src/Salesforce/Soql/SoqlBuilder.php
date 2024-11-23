@@ -2,12 +2,16 @@
 
 namespace App\Salesforce\Soql;
 
+use App\Salesforce\Soql\Condition\Combining\_And;
+use App\Salesforce\Soql\Condition\Condition;
+
 final readonly class SoqlBuilder implements \Stringable
 {
     private function __construct(
         /** @var non-empty-list<string|self> */
         private array $columns = [],
         private ?string $object = null,
+        private array $conditions = [],
     ) {
     }
 
@@ -16,14 +20,24 @@ final readonly class SoqlBuilder implements \Stringable
         return new self([$column, ...$columns]);
     }
 
-    public function addSelect(string|self ...$columns): self
+    public function addSelect(string|self $column, string|self ...$columns): self
     {
-        return new self(\array_merge($this->columns, $columns), $this->object);
+        return new self(\array_merge($this->columns, [$column], $columns), $this->object, $this->conditions);
     }
 
     public function from(string $object): self
     {
-        return new self($this->columns, $object);
+        return new self($this->columns, $object, $this->conditions);
+    }
+
+    public function where(Condition $condition, Condition ...$conditions): self
+    {
+        return new self($this->columns, $this->object, [$condition, ...$conditions]);
+    }
+
+    public function andWhere(Condition $condition, Condition ...$conditions): self
+    {
+        return new self($this->columns, $this->object, \array_merge($this->conditions, [$condition], $conditions));
     }
 
     public function toSoql(): string
@@ -37,20 +51,21 @@ final readonly class SoqlBuilder implements \Stringable
             throw new \RuntimeException('Must select from an object');
         }
 
-        return \sprintf(
-            <<<'SOQL'
-            SELECT
-                %s
-            FROM %s
-            SOQL,
-            \implode(
-                ",\n    ",
+        $elements = [
+            'SELECT ' . \implode(
+                ', ',
                 \array_map(
                     static fn (string|self $column) => $column instanceof self ? "({$column})" : $column,
                     $this->columns,
                 ),
             ),
-            $this->object,
-        );
+            "FROM {$this->object}",
+        ];
+
+        if ($this->conditions) {
+            $elements[] = 'WHERE ' . (new _And(...$this->conditions));
+        }
+
+        return \implode("\n", $elements);
     }
 }

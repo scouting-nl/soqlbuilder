@@ -2,7 +2,9 @@
 
 namespace App\Tests\Salesforce\Soql;
 
+use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\SoqlBuilder;
+use App\Salesforce\Soql\Where;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
@@ -72,6 +74,35 @@ class SoqlBuilderTest extends TestCase
                 SoqlBuilder::select('Name')->from('Other_Object'),
             )->from('Object')
                 ->addSelect(SoqlBuilder::select('More')->from('More_Object'), 'Columns'),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1'",
+            SoqlBuilder::select('Id')->from('Object')->where(Where::equals('a', 'v1')),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
+            SoqlBuilder::select('Id')->from('Object')->where(
+                Where::equals('a', 'v1'),
+                Where::equals('b', 'v2'),
+            ),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
+            SoqlBuilder::select('Id')->from('Object')->where(
+                Where::equals('a', 'v1'),
+                Where::greater('b', 10),
+                Where::orX(
+                    Where::andX(
+                        Where::equals('e', null),
+                        Where::notEquals('f', false),
+                    ),
+                    Where::less('c', 'v3'),
+                    Where::greaterEqual('d', -10),
+                ),
+            ),
         ];
     }
 
