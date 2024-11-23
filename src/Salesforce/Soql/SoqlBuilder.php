@@ -9,43 +9,48 @@ use App\Salesforce\Soql\Condition\Condition;
 final readonly class SoqlBuilder implements \Stringable
 {
     private function __construct(
-        /** @var non-empty-list<string|self> */
-        private array $columns,
-        private ?string $object = null,
+        /** @var non-empty-string */
+        private string $object,
+        /** @var list<string|self> */
+        private array $columns = [],
         /** @var list<Condition> */
         private array $conditions = [],
     ) {
     }
 
-    public static function select(string|self $column, string|self ...$columns): self
+    public static function select(string $object): self
     {
-        return new self([$column, ...\array_values($columns)]);
+        if ($object === '') {
+            throw new \RuntimeException('Object cannot be empty');
+        }
+
+        return new self($object);
     }
 
-    public function addSelect(string|self $column, string|self ...$columns): self
+    public function columns(string|self $column, string|self ...$columns): self
+    {
+        return new self($this->object, [$column, ...\array_values($columns)]);
+    }
+
+    public function addColumns(string|self $column, string|self ...$columns): self
     {
         return new self(
-            \array_merge($this->columns, [$column], \array_values($columns)),
             $this->object,
+            \array_merge($this->columns, [$column], \array_values($columns)),
             $this->conditions,
         );
     }
 
-    public function from(string $object): self
-    {
-        return new self($this->columns, $object, $this->conditions);
-    }
-
     public function where(Condition $condition, Condition ...$conditions): self
     {
-        return new self($this->columns, $this->object, [$condition, ...\array_values($conditions)]);
+        return new self($this->object, $this->columns, [$condition, ...\array_values($conditions)]);
     }
 
     public function andWhere(Condition $condition, Condition ...$conditions): self
     {
         return new self(
-            $this->columns,
             $this->object,
+            $this->columns,
             \array_merge($this->conditions, [$condition], \array_values($conditions)),
         );
     }
@@ -57,10 +62,6 @@ final readonly class SoqlBuilder implements \Stringable
 
     public function __toString(): string
     {
-        if ($this->object === null || $this->object === '') {
-            throw new \RuntimeException('Must select from an object');
-        }
-
         $elements = [
             'SELECT ' . \implode(
                 ', ',

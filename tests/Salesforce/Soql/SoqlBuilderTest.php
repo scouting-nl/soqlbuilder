@@ -6,7 +6,6 @@ namespace App\Tests\Salesforce\Soql;
 use App\Salesforce\Soql\SoqlBuilder;
 use App\Salesforce\Soql\Where;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 class SoqlBuilderTest extends TestCase
@@ -27,63 +26,71 @@ class SoqlBuilderTest extends TestCase
     {
         yield [
             'SELECT Id FROM Object',
-            SoqlBuilder::select('Id')->from('Object'),
+            SoqlBuilder::select('Object')->columns('Id'),
         ];
 
         yield [
             'SELECT Id, Name FROM Object',
-            SoqlBuilder::select('Id', 'Name')->from('Object'),
+            SoqlBuilder::select('Object')->columns('Id', 'Name'),
         ];
 
         yield [
             'SELECT Id, Name, c1, c2, c3, c4, c5, c6, c7, c8 FROM Object',
-            SoqlBuilder::select('Id', 'Name', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8')->from('Object'),
+            SoqlBuilder::select('Object')
+                ->columns('Id', 'Name', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'),
         ];
 
         yield [
             'SELECT Id, Name, More, Columns FROM Object',
-            SoqlBuilder::select('Id', 'Name')->addSelect('More', 'Columns')->from('Object'),
+            SoqlBuilder::select('Object')
+                ->columns('Id', 'Name')
+                ->addColumns('More', 'Columns'),
         ];
 
         yield [
-            'SELECT Id, Name, More, Columns FROM Object',
-            SoqlBuilder::select('Id', 'Name')->from('Object')->addSelect('More', 'Columns'),
+            'SELECT Id, Name FROM Object',
+            SoqlBuilder::select('Object')
+                ->addColumns('More', 'Columns')
+                ->columns('Id', 'Name'),
         ];
 
         yield [
             'SELECT Id, (SELECT Name FROM Other_Object) FROM Object',
-            SoqlBuilder::select(
-                'Id',
-                SoqlBuilder::select('Name')->from('Other_Object'),
-            )->from('Object'),
+            SoqlBuilder::select('Object')
+                ->columns(
+                    'Id',
+                    SoqlBuilder::select('Other_Object')->columns('Name'),
+                ),
         ];
 
         yield [
             'SELECT Id, (SELECT Name FROM Other_Object), More, Columns FROM Object',
-            SoqlBuilder::select(
-                'Id',
-                SoqlBuilder::select('Name')->from('Other_Object'),
-            )->from('Object')
-                ->addSelect('More', 'Columns'),
+            SoqlBuilder::select('Object')
+                ->columns(
+                    'Id',
+                    SoqlBuilder::select('Other_Object')->columns('Name'),
+                )
+                ->addColumns('More', 'Columns'),
         ];
 
         yield [
             'SELECT Id, (SELECT Name FROM Other_Object), (SELECT More FROM More_Object), Columns FROM Object',
-            SoqlBuilder::select(
-                'Id',
-                SoqlBuilder::select('Name')->from('Other_Object'),
-            )->from('Object')
-                ->addSelect(SoqlBuilder::select('More')->from('More_Object'), 'Columns'),
+            SoqlBuilder::select('Object')
+                ->columns(
+                    'Id',
+                    SoqlBuilder::select('Other_Object')->columns('Name'),
+                )
+                ->addColumns(SoqlBuilder::select('More_Object')->columns('More'), 'Columns'),
         ];
 
         yield [
             "SELECT Id FROM Object WHERE a = 'v1'",
-            SoqlBuilder::select('Id')->from('Object')->where(Where::equals('a', 'v1')),
+            SoqlBuilder::select('Object')->columns('Id')->where(Where::equals('a', 'v1')),
         ];
 
         yield [
             "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
-            SoqlBuilder::select('Id')->from('Object')->where(
+            SoqlBuilder::select('Object')->columns('Id')->where(
                 Where::equals('a', 'v1'),
                 Where::equals('b', 'v2'),
             ),
@@ -91,7 +98,7 @@ class SoqlBuilderTest extends TestCase
 
         yield [
             "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
-            SoqlBuilder::select('Id')->from('Object')->where(
+            SoqlBuilder::select('Object')->columns('Id')->where(
                 Where::equals('a', 'v1'),
                 Where::greater('b', 10),
                 Where::orX(
@@ -106,17 +113,11 @@ class SoqlBuilderTest extends TestCase
         ];
     }
 
-    #[TestWith([null])]
-    #[TestWith([''])]
-    public function testBuilderFailsWithoutFrom(?string $object): void
+    public function testBuilderFailsWithEmptyFrom(): void
     {
         self::expectException(\RuntimeException::class);
-        self::expectExceptionMessage('Must select from an object');
+        self::expectExceptionMessage('Object cannot be empty');
 
-        if ($object === null) {
-            SoqlBuilder::select('Id')->toSoql();
-        } else {
-            SoqlBuilder::select('Id')->from($object)->toSoql();
-        }
+        SoqlBuilder::select('');
     }
 }
