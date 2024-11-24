@@ -147,6 +147,31 @@ class SoqlBuilderTest extends TestCase
                     ),
                 ),
         ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' LIMIT 10",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(Where::equals('a', 'v1'))
+                ->limit(10),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' OFFSET 10",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(Where::equals('a', 'v1'))
+                ->offset(10),
+        ];
+
+        yield [
+            "SELECT Id FROM Object WHERE a = 'v1' LIMIT 100 OFFSET 10",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(Where::equals('a', 'v1'))
+                ->limit(100)
+                ->offset(10),
+        ];
     }
 
     public function testBuilderFailsWithEmptyFrom(): void
@@ -155,5 +180,13 @@ class SoqlBuilderTest extends TestCase
         self::expectExceptionMessage('Object cannot be empty');
 
         SoqlBuilder::select('');
+    }
+
+    public function testBuilderFailsWithTooLargeOffset(): void
+    {
+        self::expectException(\InvalidArgumentException::class);
+        self::expectExceptionMessage('Offset must be less than or equal to ' . SoqlBuilder::MAX_OFFSET);
+
+        SoqlBuilder::select('o')->offset(SoqlBuilder::MAX_OFFSET + 1);
     }
 }

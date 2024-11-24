@@ -15,7 +15,28 @@ final readonly class SoqlBuilder implements \Stringable
         private array $columns = [],
         /** @var list<Condition> */
         private array $conditions = [],
+        private ?int $limit = null,
+        private ?int $offset = null,
     ) {
+    }
+
+    /**
+     * @param list<string|self>|null $columns
+     * @param list<Condition>|null $conditions
+     */
+    private function new(
+        ?array $columns = null,
+        ?array $conditions = null,
+        ?int $limit = null,
+        ?int $offset = null,
+    ): self {
+        return new self(
+            $this->object,
+            $columns ?? $this->columns,
+            $conditions ?? $this->conditions,
+            $limit ?? $this->limit,
+            $offset ?? $this->offset,
+        );
     }
 
     public static function select(string $object): self
@@ -29,30 +50,36 @@ final readonly class SoqlBuilder implements \Stringable
 
     public function columns(string|self $column, string|self ...$columns): self
     {
-        return new self($this->object, [$column, ...\array_values($columns)]);
+        return $this->new(columns: [$column, ...\array_values($columns)]);
     }
 
     public function addColumns(string|self $column, string|self ...$columns): self
     {
-        return new self(
-            $this->object,
-            \array_merge($this->columns, [$column], \array_values($columns)),
-            $this->conditions,
-        );
+        return $this->new(columns: \array_merge($this->columns, [$column], \array_values($columns)));
     }
 
     public function where(Condition $condition, Condition ...$conditions): self
     {
-        return new self($this->object, $this->columns, [$condition, ...\array_values($conditions)]);
+        return $this->new(conditions: [$condition, ...\array_values($conditions)]);
     }
 
     public function andWhere(Condition $condition, Condition ...$conditions): self
     {
-        return new self(
-            $this->object,
-            $this->columns,
-            \array_merge($this->conditions, [$condition], \array_values($conditions)),
-        );
+        return $this->new(conditions: \array_merge($this->conditions, [$condition], \array_values($conditions)));
+    }
+
+    public function limit(int $limit): self
+    {
+        return $this->new(limit: $limit);
+    }
+
+    public function offset(int $offset): self
+    {
+        if ($offset > 2000) {
+            throw new \InvalidArgumentException('Offset must be less than or equal to 2000');
+        }
+
+        return $this->new(offset: $offset);
     }
 
     public function toSoql(): string
@@ -75,6 +102,14 @@ final readonly class SoqlBuilder implements \Stringable
 
         if ($this->conditions) {
             $elements[] = 'WHERE ' . (new _And(...$this->conditions));
+        }
+
+        if ($this->limit !== null) {
+            $elements[] = "LIMIT {$this->limit}";
+        }
+
+        if ($this->offset !== null) {
+            $elements[] = "OFFSET {$this->offset}";
         }
 
         return \implode("\n", $elements);
