@@ -8,6 +8,8 @@ use App\Salesforce\Soql\Condition\Condition;
 
 final readonly class SoqlBuilder implements \Stringable
 {
+    public const int MAX_OFFSET = 2000;
+
     private function __construct(
         /** @var non-empty-string */
         private string $object,
@@ -75,8 +77,8 @@ final readonly class SoqlBuilder implements \Stringable
 
     public function offset(int $offset): self
     {
-        if ($offset > 2000) {
-            throw new \InvalidArgumentException('Offset must be less than or equal to 2000');
+        if ($offset > self::MAX_OFFSET) {
+            throw new \InvalidArgumentException('Offset must be less than or equal to ' . self::MAX_OFFSET);
         }
 
         return $this->new(offset: $offset);
