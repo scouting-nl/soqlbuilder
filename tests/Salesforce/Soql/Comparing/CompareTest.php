@@ -67,6 +67,16 @@ class CompareTest extends TestCase
             ];
 
             yield [
+                "c {$operator->value} 'value'",
+                new Compare('c', $operator, new class implements \Stringable {
+                    public function __toString(): string
+                    {
+                        return 'value';
+                    }
+                }),
+            ];
+
+            yield [
                 "c {$operator->value} 10",
                 new Compare('c', $operator, 10),
             ];

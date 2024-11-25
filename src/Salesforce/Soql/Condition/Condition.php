@@ -5,7 +5,7 @@ namespace App\Salesforce\Soql\Condition;
 
 abstract class Condition implements \Stringable
 {
-    protected function escapeLiteral(string|int|\UnitEnum|bool|null $value): string
+    protected function escapeLiteral(string|\Stringable|int|\UnitEnum|bool|null $value): string
     {
         if ($value instanceof \BackedEnum) {
             $value = $value->value;
@@ -13,8 +13,8 @@ abstract class Condition implements \Stringable
             $value = $value->name;
         }
 
-        if (\is_string($value)) {
-            return "'" . \str_replace("'", "\\'", $value) . "'";
+        if (\is_string($value) || $value instanceof \Stringable) {
+            return "'" . \str_replace("'", "\\'", (string)$value) . "'";
         }
 
         if (\is_bool($value)) {

@@ -8,6 +8,7 @@ use App\Salesforce\Soql\Condition\Combining\_Or;
 use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use App\Salesforce\Soql\Condition\Comparing\In;
+use App\Salesforce\Soql\Condition\Comparing\Like;
 use App\Salesforce\Soql\Condition\Condition;
 
 final readonly class Where
@@ -40,6 +41,16 @@ final readonly class Where
     public static function lessEquals(string $column, string|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::LESS_EQUALS, $value);
+    }
+
+    public static function like(string $column, string|\Stringable $value): Like
+    {
+        return new Like($column, $value);
+    }
+
+    public static function notLike(string $column, string|\Stringable $value): Like
+    {
+        return new Like($column, $value, true);
     }
 
     /**

@@ -10,7 +10,7 @@ class Compare extends Condition
     public function __construct(
         private string $column,
         private CompareOperator $operator,
-        private string|int|\UnitEnum|bool|null $value,
+        private string|\Stringable|int|\UnitEnum|bool|null $value,
     ) {
         if ($this->value === null && !$this->operator->allowNull()) {
             throw new \RuntimeException('NULL is only allowed for equal or not equal comparison');
