@@ -3,10 +3,16 @@ declare(strict_types=1);
 
 namespace App\Salesforce\Soql\Condition;
 
+use App\Salesforce\Soql\Column\Column;
+
 abstract class Condition implements \Stringable
 {
-    protected function escapeLiteral(string|\Stringable|int|\UnitEnum|bool|null $value): string
+    protected function escapeLiteral(string|Column|\Stringable|int|\UnitEnum|bool|null $value): string
     {
+        if ($value instanceof Column) {
+            return $value->format();
+        }
+
         if ($value instanceof \BackedEnum) {
             $value = $value->value;
         } elseif ($value instanceof \UnitEnum) {

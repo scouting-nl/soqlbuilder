@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace App\Salesforce\Soql\Condition\Comparing;
 
+use App\Salesforce\Soql\Column\Column;
 use App\Salesforce\Soql\Condition\Condition;
 use App\Salesforce\Soql\SoqlBuilder;
 
 class In extends Condition
 {
     /**
-     * @param SoqlBuilder|list<string|int|\UnitEnum|bool|null> $value
+     * @param SoqlBuilder|list<string|Column|\Stringable|int|\UnitEnum|bool|null> $value
      */
     public function __construct(private string $column, private SoqlBuilder|array $value, private bool $negate = false)
     {

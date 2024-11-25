@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Salesforce\Soql\Comparing;
 
+use App\Salesforce\Soql\Column\Date;
+use App\Salesforce\Soql\Column\DateTime;
 use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use App\Salesforce\Soql\Condition\Condition;
@@ -99,6 +101,16 @@ class CompareTest extends TestCase
             yield [
                 "c {$operator->value} 'str1'",
                 new Compare('c', $operator, TestStringEnum::STR1),
+            ];
+
+            yield [
+                "c {$operator->value} 2024-11-24T19:23:54+02:00",
+                new Compare('c', $operator, new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
+            ];
+
+            yield [
+                "c {$operator->value} 2024-11-24",
+                new Compare('c', $operator, new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
             ];
         }
     }
