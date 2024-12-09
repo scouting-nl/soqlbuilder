@@ -16,8 +16,13 @@ class Like extends Condition
 
     public function __toString(): string
     {
-        $operator = $this->negate ? 'NOT LIKE' : 'LIKE';
         $value = $this->escapeLiteral($this->value);
-        return "{$this->column} {$operator} {$value}";
+        $expr = "{$this->column} LIKE {$value}";
+
+        if ($this->negate) {
+            return "(NOT {$expr})";
+        }
+
+        return $expr;
     }
 }

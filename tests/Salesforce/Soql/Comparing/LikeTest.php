@@ -39,12 +39,12 @@ class LikeTest extends TestCase
         ];
 
         yield [
-            "a NOT LIKE '%v1%'",
+            "(NOT a LIKE '%v1%')",
             new Like('a', '%v1%', negate: true),
         ];
 
         yield [
-            "a NOT LIKE '%v1%'",
+            "(NOT a LIKE '%v1%')",
             new Like(
                 'a',
                 new class implements \Stringable {
