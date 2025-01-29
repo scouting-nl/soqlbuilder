@@ -9,6 +9,7 @@ use App\Salesforce\Soql\Condition\Condition;
 final readonly class SoqlBuilder implements \Stringable
 {
     public const int MAX_OFFSET = 2000;
+    public const int MAX_QUERY_LENGTH = 100_000;
 
     private function __construct(
         /** @var non-empty-string */
@@ -114,6 +115,12 @@ final readonly class SoqlBuilder implements \Stringable
             $elements[] = "OFFSET {$this->offset}";
         }
 
-        return \implode("\n", $elements);
+        $query = \implode("\n", $elements);
+
+        if (\mb_strlen($query) > self::MAX_QUERY_LENGTH) {
+            throw new \RuntimeException('Query is too long');
+        }
+
+        return $query;
     }
 }

@@ -8,6 +8,7 @@ use App\Salesforce\Soql\Column\DateTime;
 use App\Salesforce\Soql\Condition\Comparing\Compare;
 use App\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use App\Salesforce\Soql\Condition\Condition;
+use App\Salesforce\Soql\Where;
 use App\Tests\Salesforce\Soql\Enum\TestEnum;
 use App\Tests\Salesforce\Soql\Enum\TestIntEnum;
 use App\Tests\Salesforce\Soql\Enum\TestStringEnum;
@@ -156,5 +157,21 @@ class CompareTest extends TestCase
                 yield [$operator, false];
             }
         }
+    }
+
+    public function testTooLongValueComparisonFails(): void
+    {
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage('Condition is too long');
+
+        Where::equals('test', \str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1))->__toString();
+    }
+
+    public function testTooLongIdentifierComparisonFails(): void
+    {
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage('Condition is too long');
+
+        Where::equals(\str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1), 'test')->__toString();
     }
 }

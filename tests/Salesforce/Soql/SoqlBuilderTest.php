@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Salesforce\Soql;
 
+use App\Salesforce\Soql\Condition\Condition;
 use App\Salesforce\Soql\SoqlBuilder;
 use App\Salesforce\Soql\Where;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -188,5 +189,15 @@ class SoqlBuilderTest extends TestCase
         self::expectExceptionMessage('Offset must be less than or equal to ' . SoqlBuilder::MAX_OFFSET);
 
         SoqlBuilder::select('o')->offset(SoqlBuilder::MAX_OFFSET + 1);
+    }
+
+    public function testTooLongQueryFails(): void
+    {
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage(' is too long');
+
+        SoqlBuilder::select('o')
+            ->columns(\str_repeat('x', SoqlBuilder::MAX_QUERY_LENGTH + 1))
+            ->__toString();
     }
 }

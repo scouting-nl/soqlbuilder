@@ -22,7 +22,7 @@ class Compare extends Condition
         }
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         $value = $this->escapeLiteral($this->value);
         return "{$this->column} {$this->operator->value} {$value}";

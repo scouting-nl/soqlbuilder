@@ -19,7 +19,7 @@ class In extends Condition
         }
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         if ($this->value instanceof SoqlBuilder) {
             $value = (string)$this->value;

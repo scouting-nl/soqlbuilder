@@ -15,7 +15,7 @@ abstract class CombiningCondition extends Condition
         $this->conditions = [$condition, ...\array_values($conditions)];
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return \implode(
             "\n{$this->type->name} ",
@@ -24,5 +24,10 @@ abstract class CombiningCondition extends Condition
                 $this->conditions,
             ),
         );
+    }
+
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 }

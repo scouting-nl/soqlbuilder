@@ -7,6 +7,8 @@ use App\Salesforce\Soql\Column\Column;
 
 abstract class Condition implements \Stringable
 {
+    public const int MAX_CONDITION_LENGTH = 4000;
+
     protected function escapeLiteral(string|Column|\Stringable|int|\UnitEnum|bool|null $value): string
     {
         if ($value instanceof Column) {
@@ -32,5 +34,18 @@ abstract class Condition implements \Stringable
         }
 
         return (string)$value;
+    }
+
+    abstract public function toString(): string;
+
+    public function __toString(): string
+    {
+        $string = $this->toString();
+
+        if (\mb_strlen($string) > self::MAX_CONDITION_LENGTH) {
+            throw new \RuntimeException('Condition is too long');
+        }
+
+        return $string;
     }
 }

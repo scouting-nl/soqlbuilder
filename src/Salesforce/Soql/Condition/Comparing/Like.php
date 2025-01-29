@@ -14,7 +14,7 @@ class Like extends Condition
     ) {
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         $value = $this->escapeLiteral($this->value);
         $expr = "{$this->column} LIKE {$value}";
