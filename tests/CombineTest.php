@@ -4,115 +4,132 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_And;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_Or;
+use ScoutingNL\Salesforce\Soql\Condition\Combining\CombiningCondition;
+use ScoutingNL\Salesforce\Soql\Condition\Combining\CombiningType;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
-use ScoutingNL\Salesforce\Soql\Condition\Condition;
 
 #[CoversClass(_And::class)]
 #[CoversClass(_Or::class)]
+#[CoversClass(CombiningCondition::class)]
+#[CoversClass(CombiningType::class)]
 class CombineTest extends TestCase
 {
-    /**
-     * @param callable(): Condition $condition
-     */
-    #[DataProvider('provideConditions')]
-    public function testCombine(string $expected, callable $condition): void
+    public function testAndWithSingleCondition(): void
     {
-        self::assertSameIgnoringWhitespace($expected, (string)$condition());
+        self::assertSameIgnoringWhitespace(
+            "a = 'v1'",
+            new _And(new Compare('a', CompareOperator::EQUALS, 'v1')),
+        );
     }
 
-    /**
-     * @return \Generator<array-key, array{string, callable(): Condition}>
-     */
-    public static function provideConditions(): \Generator
+    public function testAndWithTwoConditions(): void
     {
-        yield [
-            "a = 'v1'",
-            static fn () => new _And(new Compare('a', CompareOperator::EQUALS, 'v1')),
-        ];
-
-        yield [
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' AND b = 'v2'",
-            static fn () => new _And(
+            new _And(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new Compare('b', CompareOperator::EQUALS, 'v2'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testAndWithMoreThanTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' AND b = 'v2' AND c = 'v3' AND d = 'v4' AND e = 'v5'",
-            static fn () => new _And(
+            new _And(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new Compare('b', CompareOperator::EQUALS, 'v2'),
                 new Compare('c', CompareOperator::EQUALS, 'v3'),
                 new Compare('d', CompareOperator::EQUALS, 'v4'),
                 new Compare('e', CompareOperator::EQUALS, 'v5'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testOrWithSingleCondition(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1'",
-            static fn () => new _Or(new Compare('a', CompareOperator::EQUALS, 'v1')),
-        ];
+            new _Or(new Compare('a', CompareOperator::EQUALS, 'v1')),
+        );
+    }
 
-        yield [
+    public function testOrWithTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' OR b = 'v2'",
-            static fn () => new _Or(
+            new _Or(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new Compare('b', CompareOperator::EQUALS, 'v2'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testOrWithMoreThanTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' OR b = 'v2' OR c = 'v3' OR d = 'v4' OR e = 'v5'",
-            static fn () => new _Or(
+            new _Or(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new Compare('b', CompareOperator::EQUALS, 'v2'),
                 new Compare('c', CompareOperator::EQUALS, 'v3'),
                 new Compare('d', CompareOperator::EQUALS, 'v4'),
                 new Compare('e', CompareOperator::EQUALS, 'v5'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testAndAndOrConditionsCombined(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' AND (b = 'v2' OR c = 'v3')",
-            static fn () => new _And(
+            new _And(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new _Or(
                     new Compare('b', CompareOperator::EQUALS, 'v2'),
                     new Compare('c', CompareOperator::EQUALS, 'v3'),
                 ),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testOrAndConditionsCombined(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' OR (b = 'v2' AND c = 'v3')",
-            static fn () => new _Or(
+            new _Or(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new _And(
                     new Compare('b', CompareOperator::EQUALS, 'v2'),
                     new Compare('c', CompareOperator::EQUALS, 'v3'),
                 ),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testAndAndOrConditionsCombinedWithCompareAfterOr(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "(b = 'v2' OR c = 'v3') AND a = 'v1'",
-            static fn () => new _And(
+            new _And(
                 new _Or(
                     new Compare('b', CompareOperator::EQUALS, 'v2'),
                     new Compare('c', CompareOperator::EQUALS, 'v3'),
                 ),
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testThreeLevelCombination(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "a = 'v1' AND (b = 'v2' OR c = 'v3' OR (d = 'v4' AND e = 'v5'))",
-            static fn () => new _And(
+            new _And(
                 new Compare('a', CompareOperator::EQUALS, 'v1'),
                 new _Or(
                     new Compare('b', CompareOperator::EQUALS, 'v2'),
@@ -123,6 +140,6 @@ class CombineTest extends TestCase
                     ),
                 ),
             ),
-        ];
+        );
     }
 }

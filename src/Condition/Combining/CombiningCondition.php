@@ -5,7 +5,7 @@ namespace ScoutingNL\Salesforce\Soql\Condition\Combining;
 
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 
-abstract class CombiningCondition extends Condition
+abstract class CombiningCondition extends Condition implements \Stringable
 {
     /** @var non-empty-list<Condition> */
     private array $conditions;
@@ -15,6 +15,7 @@ abstract class CombiningCondition extends Condition
         $this->conditions = [$condition, ...\array_values($conditions)];
     }
 
+    #[\Override]
     public function toString(): string
     {
         return \implode(
@@ -26,6 +27,7 @@ abstract class CombiningCondition extends Condition
         );
     }
 
+    #[\Override]
     public function __toString(): string
     {
         return $this->toString();
