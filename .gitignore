@@ -1,0 +1,11 @@
+composer.lock
+vendor
+
+phpunit.xml
+.phpunit.cache
+.phpunit.coverage
+
+phpstan.neon
+
+.php-cs-fixer.php
+.php-cs-fixer.cache
