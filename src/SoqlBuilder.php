@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql;
 
-use ScoutingNL\Salesforce\Soql\Condition\Combining\_And;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 
 final readonly class SoqlBuilder implements \Stringable
@@ -11,13 +10,17 @@ final readonly class SoqlBuilder implements \Stringable
     public const int MAX_OFFSET = 2000;
     public const int MAX_QUERY_LENGTH = 100_000;
 
+    /**
+     * @param non-empty-string $object
+     * @param list<string|self> $columns
+     * @param list<Condition> $conditions
+     * @param list<string> $groupBy
+     */
     private function __construct(
-        /** @var non-empty-string */
         private string $object,
-        /** @var list<string|self> */
         private array $columns = [],
-        /** @var list<Condition> */
         private array $conditions = [],
+        private array $groupBy = [],
         private ?int $limit = null,
         private ?int $offset = null,
     ) {
@@ -26,10 +29,12 @@ final readonly class SoqlBuilder implements \Stringable
     /**
      * @param list<string|self>|null $columns
      * @param list<Condition>|null $conditions
+     * @param list<string>|null $groupBy
      */
     private function new(
         ?array $columns = null,
         ?array $conditions = null,
+        ?array $groupBy = null,
         ?int $limit = null,
         ?int $offset = null,
     ): self {
@@ -37,6 +42,7 @@ final readonly class SoqlBuilder implements \Stringable
             $this->object,
             $columns ?? $this->columns,
             $conditions ?? $this->conditions,
+            $groupBy ?? $this->groupBy,
             $limit ?? $this->limit,
             $offset ?? $this->offset,
         );
@@ -71,6 +77,16 @@ final readonly class SoqlBuilder implements \Stringable
         return $this->new(conditions: \array_merge($this->conditions, [$condition], \array_values($conditions)));
     }
 
+    public function groupBy(string $groupBy, string ...$additionalGroupBy): self
+    {
+        return $this->new(groupBy: [$groupBy, ...\array_values($additionalGroupBy)]);
+    }
+
+    public function addGroupBy(string $groupBy, string ...$additionalGroupBy): self
+    {
+        return $this->new(groupBy: \array_merge($this->groupBy, [$groupBy], \array_values($additionalGroupBy)));
+    }
+
     public function limit(int $limit): self
     {
         return $this->new(limit: $limit);
@@ -85,13 +101,13 @@ final readonly class SoqlBuilder implements \Stringable
         return $this->new(offset: $offset);
     }
 
-    public function toSoql(): string
-    {
-        return (string)$this;
-    }
-
+    #[\Override]
     public function __toString(): string
     {
+        if (!$this->columns) {
+            throw new \RuntimeException('Must select at least one column');
+        }
+
         $elements = [
             'SELECT ' . \implode(
                 ', ',
@@ -104,7 +120,11 @@ final readonly class SoqlBuilder implements \Stringable
         ];
 
         if ($this->conditions) {
-            $elements[] = 'WHERE ' . (new _And(...$this->conditions));
+            $elements[] = 'WHERE ' . Where::and(...$this->conditions);
+        }
+
+        if ($this->groupBy) {
+            $elements[] = 'GROUP BY ' . \implode(', ', $this->groupBy);
         }
 
         if ($this->limit !== null) {

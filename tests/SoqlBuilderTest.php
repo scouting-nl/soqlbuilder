@@ -4,134 +4,251 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
 use ScoutingNL\Salesforce\Soql\Where;
 
 #[CoversClass(SoqlBuilder::class)]
 class SoqlBuilderTest extends TestCase
 {
-    /**
-     * @param callable(): SoqlBuilder $builder
-     */
-    #[DataProvider('provideBuilder')]
-    public function testSoqlBuilder(string $expected, callable $builder): void
+    public function testSelectWithoutColumns(): void
     {
-        self::assertSameIgnoringWhitespace($expected, $builder()->toSoql());
+        self::expectException(\RuntimeException::class);
+        self::expectExceptionMessage('Must select at least one column');
+        SoqlBuilder::select('Object')->__toString();
     }
 
-    /**
-     * @return \Generator<array-key, array{string, callable(): SoqlBuilder}>
-     */
-    public static function provideBuilder(): \Generator
+    public function testColumnWithOneColumn(): void
     {
-        yield [
+        self::assertSameIgnoringWhitespace(
             'SELECT Id FROM Object',
-            static fn () => SoqlBuilder::select('Object')->columns('Id'),
-        ];
+            SoqlBuilder::select('Object')->columns('Id'),
+        );
+    }
 
-        yield [
+    public function testColumnWithTwoColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, Name FROM Object',
-            static fn () => SoqlBuilder::select('Object')->columns('Id', 'Name'),
-        ];
+            SoqlBuilder::select('Object')->columns('Id', 'Name'),
+        );
+    }
 
-        yield [
+    public function testColumnWithMoreThanTwoColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, Name, c1, c2, c3, c4, c5, c6, c7, c8 FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id', 'Name', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'),
-        ];
+        );
+    }
 
-        yield [
+    public function testAddColumnWithOneColumn(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object',
+            SoqlBuilder::select('Object')->columns('Id'),
+        );
+    }
+
+    public function testAddColumnWithTwoColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id, Name FROM Object',
+            SoqlBuilder::select('Object')->columns('Id', 'Name'),
+        );
+    }
+
+    public function testAddColumnWithMoreThanTwoColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id, Name, c1, c2, c3, c4, c5, c6, c7, c8 FROM Object',
+            SoqlBuilder::select('Object')
+                ->columns('Id', 'Name', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'),
+        );
+    }
+
+    public function testAddColumnsAfterColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, Name, More, Columns FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id', 'Name')
                 ->addColumns('More', 'Columns'),
-        ];
+        );
+    }
 
-        yield [
+    public function testThatColumnsResetsPreviousColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, Name FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
+                ->columns('More', 'Columns')
+                ->columns('Id', 'Name'),
+        );
+    }
+
+    public function testThatColumnsResetsPreviousAddColumns(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id, Name FROM Object',
+            SoqlBuilder::select('Object')
                 ->addColumns('More', 'Columns')
                 ->columns('Id', 'Name'),
-        ];
+        );
+    }
 
-        yield [
+    public function testColumnsWithSoqlBuilder(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, (SELECT Name FROM Other_Object) FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns(
                     'Id',
                     SoqlBuilder::select('Other_Object')->columns('Name'),
                 ),
-        ];
+        );
+    }
 
-        yield [
+    public function testAddColumnsAfterColumnsWithSoqlBuilder(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, (SELECT Name FROM Other_Object), More, Columns FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns(
                     'Id',
                     SoqlBuilder::select('Other_Object')->columns('Name'),
                 )
                 ->addColumns('More', 'Columns'),
-        ];
+        );
+    }
 
-        yield [
+    public function testAddColumnsWithSoqlBuilder(): void
+    {
+        self::assertSameIgnoringWhitespace(
             'SELECT Id, (SELECT Name FROM Other_Object), (SELECT More FROM More_Object), Columns FROM Object',
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns(
                     'Id',
                     SoqlBuilder::select('Other_Object')->columns('Name'),
                 )
                 ->addColumns(SoqlBuilder::select('More_Object')->columns('More'), 'Columns'),
-        ];
+        );
+    }
 
-        yield [
+    public function testWhereWithOneCondition(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1'",
-            static fn () => SoqlBuilder::select('Object')->columns('Id')->where(Where::equals('a', 'v1')),
-        ];
+            SoqlBuilder::select('Object')->columns('Id')->where(Where::equals('a', 'v1')),
+        );
+    }
 
-        yield [
+    public function testWhereWithTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
-            static fn () => SoqlBuilder::select('Object')->columns('Id')->where(
+            SoqlBuilder::select('Object')->columns('Id')->where(
                 Where::equals('a', 'v1'),
                 Where::equals('b', 'v2'),
             ),
-        ];
+        );
+    }
 
-        yield [
+    public function testAndWhereWithOneConditionAfterWhereWithOneCondition(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->where(Where::equals('a', 'v1'))
                 ->andWhere(Where::equals('b', 'v2')),
-        ];
+        );
+    }
 
-        yield [
+    public function testTwoAndWheres(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' AND b = 'v2'",
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->andWhere(Where::equals('a', 'v1'))
                 ->andWhere(Where::equals('b', 'v2')),
-        ];
+        );
+    }
 
-        yield [
-            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
-            static fn () => SoqlBuilder::select('Object')->columns('Id')->where(
-                Where::equals('a', 'v1'),
-                Where::greater('b', 10),
-                Where::or(
-                    Where::and(
-                        Where::equals('e', null),
-                        Where::notEquals('f', false),
+    public function testGroupByWithOneColumn(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object GROUP BY Name',
+            SoqlBuilder::select('Object')->columns('Id')->groupBy('Name'),
+        );
+    }
+
+    public function testGroupByWithTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object GROUP BY Name, Other',
+            SoqlBuilder::select('Object')->columns('Id')->groupBy('Name', 'Other'),
+        );
+    }
+
+    public function testAddGroupByWithOneCondition(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object GROUP BY Name, Other',
+            SoqlBuilder::select('Object')->columns('Id')
+                ->groupBy('Name')
+                ->addGroupBy('Other'),
+        );
+    }
+
+    public function testAddGroupByWithTwoConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object GROUP BY Name, Other, Even.More, And.More',
+            SoqlBuilder::select('Object')->columns('Id')
+                ->groupBy('Name', 'Other')
+                ->addGroupBy('Even.More', 'And.More'),
+        );
+    }
+
+    public function testTwoAddGroupBysWithoutGroupBy(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Id FROM Object GROUP BY Name, Other',
+            SoqlBuilder::select('Object')->columns('Id')
+                ->addGroupBy('Name')
+                ->addGroupBy('Other'),
+        );
+    }
+
+    public function testWhereWithCombiningConditions(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10) GROUP BY Name",
+            SoqlBuilder::select('Object')
+                ->columns('Id')
+                ->where(
+                    Where::equals('a', 'v1'),
+                    Where::greater('b', 10),
+                    Where::or(
+                        Where::and(
+                            Where::equals('e', null),
+                            Where::notEquals('f', false),
+                        ),
+                        Where::less('c', 'v3'),
+                        Where::greaterEqual('d', -10),
                     ),
-                    Where::less('c', 'v3'),
-                    Where::greaterEqual('d', -10),
-                ),
-            ),
-        ];
+                )
+                ->groupBy('Name'),
+        );
+    }
 
-        yield [
-            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10)",
-            static fn () => SoqlBuilder::select('Object')
+    public function testComplexQuery(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10) GROUP BY Name, Other",
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->where(
                     Where::equals('a', 'v1'),
@@ -146,33 +263,44 @@ class SoqlBuilderTest extends TestCase
                         Where::less('c', 'v3'),
                         Where::greaterEqual('d', -10),
                     ),
-                ),
-        ];
+                )
+                ->groupBy('Name')
+                ->addGroupBy('Other'),
+        );
+    }
 
-        yield [
+    public function testLimit(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' LIMIT 10",
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->where(Where::equals('a', 'v1'))
                 ->limit(10),
-        ];
+        );
+    }
 
-        yield [
+    public function testOffset(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' OFFSET 10",
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->where(Where::equals('a', 'v1'))
                 ->offset(10),
-        ];
+        );
+    }
 
-        yield [
+    public function testLimitAndOffset(): void
+    {
+        self::assertSameIgnoringWhitespace(
             "SELECT Id FROM Object WHERE a = 'v1' LIMIT 100 OFFSET 10",
-            static fn () => SoqlBuilder::select('Object')
+            SoqlBuilder::select('Object')
                 ->columns('Id')
                 ->where(Where::equals('a', 'v1'))
                 ->limit(100)
                 ->offset(10),
-        ];
+        );
     }
 
     public function testBuilderFailsWithEmptyFrom(): void
