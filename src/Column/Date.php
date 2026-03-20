@@ -9,6 +9,7 @@ class Date implements Column
     {
     }
 
+    #[\Override]
     public function format(): string
     {
         return $this->dateTime->format('Y-m-d');
