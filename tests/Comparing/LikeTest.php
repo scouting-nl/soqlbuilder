@@ -3,34 +3,36 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Like;
+use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
+#[CoversClass(Like::class)]
 class LikeTest extends TestCase
 {
+    /**
+     * @param callable(): Like $like
+     */
     #[DataProvider('provideLike')]
-    public function testLike(string $expected, Like $like): void
+    public function testLike(string $expected, callable $like): void
     {
-        self::assertEquals(
-            \preg_replace('/(\s|[\n\r])+/', ' ', \trim($expected)),
-            \preg_replace('/(\s|[\n\r])+/', ' ', (string)$like),
-        );
+        self::assertSameIgnoringWhitespace($expected, (string)$like());
     }
 
     /**
-     * @return \Generator<array-key, array{string, Like}>
+     * @return \Generator<array-key, array{string, callable(): Like}>
      */
     public static function provideLike(): \Generator
     {
         yield [
             "a LIKE '%v1%'",
-            new Like('a', '%v1%'),
+            static fn () => new Like('a', '%v1%'),
         ];
 
         yield [
             "a LIKE '%v1%'",
-            new Like('a', new class implements \Stringable {
+            static fn () => new Like('a', new class implements \Stringable {
                 public function __toString(): string
                 {
                     return '%v1%';
@@ -40,12 +42,12 @@ class LikeTest extends TestCase
 
         yield [
             "(NOT a LIKE '%v1%')",
-            new Like('a', '%v1%', negate: true),
+            static fn () => new Like('a', '%v1%', negate: true),
         ];
 
         yield [
             "(NOT a LIKE '%v1%')",
-            new Like(
+            static fn () => new Like(
                 'a',
                 new class implements \Stringable {
                     public function __toString(): string

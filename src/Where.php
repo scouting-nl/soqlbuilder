@@ -70,12 +70,12 @@ final readonly class Where
         return new In($column, $value, negate: true);
     }
 
-    public static function andX(Condition $condition, Condition ...$conditions): _And
+    public static function and(Condition $condition, Condition ...$conditions): _And
     {
         return new _And($condition, ...$conditions);
     }
 
-    public static function orX(Condition $condition, Condition ...$conditions): _Or
+    public static function or(Condition $condition, Condition ...$conditions): _Or
     {
         return new _Or($condition, ...$conditions);
     }

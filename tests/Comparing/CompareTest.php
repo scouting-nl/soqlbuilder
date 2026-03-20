@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
 use ScoutingNL\Salesforce\Soql\Column\Date;
 use ScoutingNL\Salesforce\Soql\Column\DateTime;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
@@ -14,64 +14,70 @@ use ScoutingNL\Salesforce\Soql\Where;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestEnum;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestIntEnum;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestStringEnum;
+use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
+#[CoversClass(Compare::class)]
+#[CoversClass(CompareOperator::class)]
 class CompareTest extends TestCase
 {
+    /**
+     * @param callable(): Condition $condition
+     */
     #[DataProvider('provideConditions')]
-    public function testCompare(string $expected, Condition $condition): void
+    public function testCompare(string $expected, callable $condition): void
     {
-        self::assertEquals($expected, (string)$condition);
+        self::assertSameIgnoringWhitespace($expected, (string)$condition());
     }
 
     /**
-     * @return \Generator<array-key, array{string, Condition}>
+     * @return \Generator<array-key, array{string, callable(): Condition}>
      */
     public static function provideConditions(): \Generator
     {
         yield [
             'c = NULL',
-            new Compare('c', CompareOperator::EQUALS, null),
+            static fn () => new Compare('c', CompareOperator::EQUALS, null),
         ];
 
         yield [
             'c != NULL',
-            new Compare('c', CompareOperator::NOT_EQUALS, null),
+            static fn () => new Compare('c', CompareOperator::NOT_EQUALS, null),
         ];
 
         yield [
             'c = TRUE',
-            new Compare('c', CompareOperator::EQUALS, true),
+            static fn () => new Compare('c', CompareOperator::EQUALS, true),
         ];
 
         yield [
             'c != TRUE',
-            new Compare('c', CompareOperator::NOT_EQUALS, true),
+            static fn () => new Compare('c', CompareOperator::NOT_EQUALS, true),
         ];
 
         yield [
             'c = FALSE',
-            new Compare('c', CompareOperator::EQUALS, false),
+            static fn () => new Compare('c', CompareOperator::EQUALS, false),
         ];
 
         yield [
             'c != FALSE',
-            new Compare('c', CompareOperator::NOT_EQUALS, false),
+            static fn () => new Compare('c', CompareOperator::NOT_EQUALS, false),
         ];
 
         foreach (CompareOperator::cases() as $operator) {
             yield [
                 "c {$operator->value} ''",
-                new Compare('c', $operator, ''),
+                static fn () => new Compare('c', $operator, ''),
             ];
 
             yield [
                 "c {$operator->value} 'value'",
-                new Compare('c', $operator, 'value'),
+                static fn () => new Compare('c', $operator, 'value'),
             ];
 
             yield [
                 "c {$operator->value} 'value'",
-                new Compare('c', $operator, new class implements \Stringable {
+                static fn () => new Compare('c', $operator, new class implements \Stringable {
                     public function __toString(): string
                     {
                         return 'value';
@@ -81,37 +87,37 @@ class CompareTest extends TestCase
 
             yield [
                 "c {$operator->value} 10",
-                new Compare('c', $operator, 10),
+                static fn () => new Compare('c', $operator, 10),
             ];
 
             yield [
                 "c {$operator->value} -10",
-                new Compare('c', $operator, -10),
+                static fn () => new Compare('c', $operator, -10),
             ];
 
             yield [
                 "c {$operator->value} 'T1'",
-                new Compare('c', $operator, TestEnum::T1),
+                static fn () => new Compare('c', $operator, TestEnum::T1),
             ];
 
             yield [
                 "c {$operator->value} 2",
-                new Compare('c', $operator, TestIntEnum::I2),
+                static fn () => new Compare('c', $operator, TestIntEnum::I2),
             ];
 
             yield [
                 "c {$operator->value} 'str1'",
-                new Compare('c', $operator, TestStringEnum::STR1),
+                static fn () => new Compare('c', $operator, TestStringEnum::STR1),
             ];
 
             yield [
                 "c {$operator->value} 2024-11-24T19:23:54+02:00",
-                new Compare('c', $operator, new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
+                static fn () => new Compare('c', $operator, new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
             ];
 
             yield [
                 "c {$operator->value} 2024-11-24",
-                new Compare('c', $operator, new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
+                static fn () => new Compare('c', $operator, new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))),
             ];
         }
     }
