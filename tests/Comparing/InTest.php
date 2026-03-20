@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use ScoutingNL\Salesforce\Soql\Column\Date;
 use ScoutingNL\Salesforce\Soql\Column\DateTime;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
@@ -14,51 +14,31 @@ use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 #[CoversClass(In::class)]
 class InTest extends TestCase
 {
-    /**
-     * @param callable(): In $in
-     */
-    #[DataProvider('provideIn')]
-    public function testIn(string $expected, callable $in): void
+    #[TestWith(["a IN ('v1')", new In('a', ['v1'])])]
+    #[TestWith(["a NOT IN ('v1')", new In('a', ['v1'], negate: true)])]
+    #[TestWith([
+        "a IN ('v1', 'v2', 10, NULL, FALSE, TRUE, 2024-11-24T19:23:54+02:00, 2024-11-24)",
+        new In('a', ['v1', 'v2', 10, null, false, true, new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200')), new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))]),
+    ])]
+    #[TestWith([
+        "a NOT IN ('v1', 'v2', 10, NULL, FALSE, TRUE, 2024-11-24T19:23:54+02:00, 2024-11-24)",
+        new In('a', ['v1', 'v2', 10, null, false, true, new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200')), new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))], negate: true),
+    ])]
+    public function testIn(string $expected, In $in): void
     {
-        self::assertSameIgnoringWhitespace($expected, (string)$in());
+        self::assertSameIgnoringWhitespace($expected, (string)$in);
     }
 
-    /**
-     * @return \Generator<array-key, array{string, callable(): In}>
-     */
-    public static function provideIn(): \Generator
+    public function testInWithSoqlBuilder(): void
     {
-        yield [
-            "a IN ('v1')",
-            static fn () => new In('a', ['v1']),
-        ];
-
-        yield [
-            "a NOT IN ('v1')",
-            static fn () => new In('a', ['v1'], negate: true),
-        ];
-
-        $dateTime = new \DateTimeImmutable('2024-11-24T19:23:54+0200');
-
-        yield [
-            "a IN ('v1', 'v2', 10, NULL, FALSE, TRUE, 2024-11-24T19:23:54+02:00, 2024-11-24)",
-            static fn () => new In('a', ['v1', 'v2', 10, null, false, true, new DateTime($dateTime), new Date($dateTime)]),
-        ];
-
-        yield [
-            "a NOT IN ('v1', 'v2', 10, NULL, FALSE, TRUE, 2024-11-24T19:23:54+02:00, 2024-11-24)",
-            static fn () => new In('a', ['v1', 'v2', 10, null, false, true, new DateTime($dateTime), new Date($dateTime)], negate: true),
-        ];
-
-        yield [
+        self::assertSameIgnoringWhitespace(
             'a IN (SELECT b, c FROM Object)',
-            static fn () => new In('a', SoqlBuilder::select('Object')->columns('b', 'c')),
-        ];
-
-        yield [
+            new In('a', SoqlBuilder::select('Object')->columns('b', 'c')),
+        );
+        self::assertSameIgnoringWhitespace(
             'a NOT IN (SELECT b, c FROM Object)',
-            static fn () => new In('a', SoqlBuilder::select('Object')->columns('b', 'c'), negate: true),
-        ];
+            new In('a', SoqlBuilder::select('Object')->columns('b', 'c'), negate: true),
+        );
     }
 
     public function testFailWhenNoValuesInArray(): void

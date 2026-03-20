@@ -14,6 +14,7 @@ class Like extends Condition
     ) {
     }
 
+    #[\Override]
     public function toString(): string
     {
         $value = $this->escapeLiteral($this->value);

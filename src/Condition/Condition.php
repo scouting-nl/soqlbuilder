@@ -38,6 +38,7 @@ abstract class Condition implements \Stringable
 
     abstract public function toString(): string;
 
+    #[\Override]
     public function __toString(): string
     {
         $string = $this->toString();
