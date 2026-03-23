@@ -5,10 +5,10 @@ namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
-use ScoutingNL\Salesforce\Soql\Column\Date;
-use ScoutingNL\Salesforce\Soql\Column\DateTime;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
+use ScoutingNL\Salesforce\Soql\Value\Date;
+use ScoutingNL\Salesforce\Soql\Value\DateTime;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
 #[CoversClass(In::class)]

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Salesforce\Soql\Column;
+namespace ScoutingNL\Salesforce\Soql\Value;
 
-class DateTime implements Column
+class DateTime implements Value
 {
     public function __construct(private \DateTimeInterface $dateTime)
     {

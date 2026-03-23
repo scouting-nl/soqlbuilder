@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Tests\Salesforce\Soql\Column;
+namespace ScoutingNL\Tests\Salesforce\Soql\Value;
 
-use ScoutingNL\Salesforce\Soql\Column\Literal;
+use ScoutingNL\Salesforce\Soql\Value\Literal;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
 class LiteralTest extends TestCase

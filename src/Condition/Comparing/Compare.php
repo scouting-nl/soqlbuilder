@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql\Condition\Comparing;
 
-use ScoutingNL\Salesforce\Soql\Column\Column;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Value\Value;
 
 class Compare extends Condition
 {
     public function __construct(
         private string $column,
         private CompareOperator $operator,
-        private string|Column|\Stringable|int|\UnitEnum|bool|null $value,
+        private string|Value|\Stringable|int|\UnitEnum|bool|null $value,
     ) {
         if ($this->value === null && !$this->operator->allowNull()) {
             throw new \RuntimeException('NULL is only allowed for equal or not equal comparison');

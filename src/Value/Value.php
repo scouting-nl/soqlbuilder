@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Salesforce\Soql\Column;
+namespace ScoutingNL\Salesforce\Soql\Value;
 
-interface Column
+interface Value
 {
     public function format(): string;
 }

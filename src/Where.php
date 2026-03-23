@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql;
 
-use ScoutingNL\Salesforce\Soql\Column\Column;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_And;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_Or;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
@@ -11,35 +10,36 @@ use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Like;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Value\Value;
 
 final readonly class Where
 {
-    public static function equals(string $column, string|Column|\Stringable|int|\UnitEnum|bool|null $value): Compare
+    public static function equals(string $column, string|Value|\Stringable|int|\UnitEnum|bool|null $value): Compare
     {
         return new Compare($column, CompareOperator::EQUALS, $value);
     }
 
-    public static function notEquals(string $column, string|Column|\Stringable|int|\UnitEnum|bool|null $value): Compare
+    public static function notEquals(string $column, string|Value|\Stringable|int|\UnitEnum|bool|null $value): Compare
     {
         return new Compare($column, CompareOperator::NOT_EQUALS, $value);
     }
 
-    public static function greater(string $column, string|Column|\Stringable|int|\UnitEnum $value): Compare
+    public static function greater(string $column, string|Value|\Stringable|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::GREATER, $value);
     }
 
-    public static function greaterEqual(string $column, string|Column|\Stringable|int|\UnitEnum $value): Compare
+    public static function greaterEqual(string $column, string|Value|\Stringable|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::GREATER_EQUALS, $value);
     }
 
-    public static function less(string $column, string|Column|\Stringable|int|\UnitEnum $value): Compare
+    public static function less(string $column, string|Value|\Stringable|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::LESS, $value);
     }
 
-    public static function lessEquals(string $column, string|Column|\Stringable|int|\UnitEnum $value): Compare
+    public static function lessEquals(string $column, string|Value|\Stringable|int|\UnitEnum $value): Compare
     {
         return new Compare($column, CompareOperator::LESS_EQUALS, $value);
     }
@@ -55,7 +55,7 @@ final readonly class Where
     }
 
     /**
-     * @param SoqlBuilder|non-empty-list<string|Column|\Stringable|int|\UnitEnum|bool|null> $value
+     * @param SoqlBuilder|non-empty-list<string|Value|\Stringable|int|\UnitEnum|bool|null> $value
      */
     public static function in(string $column, SoqlBuilder|array $value): In
     {
@@ -63,7 +63,7 @@ final readonly class Where
     }
 
     /**
-     * @param SoqlBuilder|non-empty-list<string|Column|\Stringable|int|\UnitEnum|bool|null> $value
+     * @param SoqlBuilder|non-empty-list<string|Value|\Stringable|int|\UnitEnum|bool|null> $value
      */
     public static function notIn(string $column, SoqlBuilder|array $value): In
     {

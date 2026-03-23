@@ -5,12 +5,12 @@ namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
-use ScoutingNL\Salesforce\Soql\Column\Column;
-use ScoutingNL\Salesforce\Soql\Column\Date;
-use ScoutingNL\Salesforce\Soql\Column\DateTime;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Value\Date;
+use ScoutingNL\Salesforce\Soql\Value\DateTime;
+use ScoutingNL\Salesforce\Soql\Value\Value;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestEnum;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestIntEnum;
 use ScoutingNL\Tests\Salesforce\Soql\Enum\TestStringEnum;
@@ -32,7 +32,7 @@ class CompareTest extends TestCase
     #[TestWith(["c = 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c = 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c = 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testEquals(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testEquals(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::EQUALS, $value));
     }
@@ -67,7 +67,7 @@ class CompareTest extends TestCase
     #[TestWith(["c != 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c != 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c != 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testNotEquals(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testNotEquals(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::NOT_EQUALS, $value));
     }
@@ -99,7 +99,7 @@ class CompareTest extends TestCase
     #[TestWith(["c > 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c > 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c > 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testGreater(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testGreater(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::GREATER, $value));
     }
@@ -131,7 +131,7 @@ class CompareTest extends TestCase
     #[TestWith(["c >= 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c >= 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c >= 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testGreaterEqual(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testGreaterEqual(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::GREATER_EQUALS, $value));
     }
@@ -163,7 +163,7 @@ class CompareTest extends TestCase
     #[TestWith(["c < 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c < 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c < 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testLess(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testLess(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::LESS, $value));
     }
@@ -195,7 +195,7 @@ class CompareTest extends TestCase
     #[TestWith(["c <= 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c <= 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c <= 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testLessEqual(string $expected, bool|int|string|Column|\Stringable|\UnitEnum|null $value): void
+    public function testLessEqual(string $expected, bool|int|string|Value|\Stringable|\UnitEnum|null $value): void
     {
         self::assertSameIgnoringWhitespace($expected, new Compare('c', CompareOperator::LESS_EQUALS, $value));
     }
