@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql\Value;
 
-enum Literal: string implements Value
+final readonly class Literal implements Value
 {
-    case TODAY = 'TODAY';
+    public function __construct(private string $value)
+    {
+    }
 
     #[\Override]
     public function format(): string

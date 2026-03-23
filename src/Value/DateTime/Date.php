@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Salesforce\Soql\Value;
+namespace ScoutingNL\Salesforce\Soql\Value\DateTime;
+
+use ScoutingNL\Salesforce\Soql\Value\Value;
 
 class Date implements Value
 {

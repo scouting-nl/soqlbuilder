@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Tests\Salesforce\Soql\Value;
+namespace ScoutingNL\Tests\Salesforce\Soql\Value\DateTime;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use ScoutingNL\Salesforce\Soql\Value\DateTime;
+use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
 #[CoversClass(DateTime::class)]
