@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
@@ -135,6 +136,61 @@ class SoqlBuilderTest extends TestCase
                 )
                 ->addColumns(SoqlBuilder::select('More_Object')->columns('More'), 'Columns'),
         );
+    }
+
+    public function testColumnsWithOnlyFields(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT FIELDS(ALL) FROM Object LIMIT 10',
+            SoqlBuilder::select('Object')->columns(Fields::ALL)->limit(10),
+        );
+    }
+
+    public function testColumnsWithFields(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Other__c.Id, FIELDS(ALL) FROM Object LIMIT 10',
+            SoqlBuilder::select('Object')->columns('Other__c.Id', Fields::ALL)->limit(10),
+        );
+    }
+
+    public function testAddColumnsAfterColumnsWithFields(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT FIELDS(ALL), Other__c.Id FROM Object LIMIT 10',
+            SoqlBuilder::select('Object')
+                ->columns(Fields::ALL)
+                ->addColumns('Other__c.Id')
+                ->limit(10),
+        );
+    }
+
+    public function testAddColumnsWithFields(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Other__c.Id, FIELDS(ALL) FROM Object LIMIT 10',
+            SoqlBuilder::select('Object')
+                ->columns('Other__c.Id')
+                ->addColumns(Fields::ALL)
+                ->limit(10),
+        );
+    }
+
+    public function testThatLimitIsRequiredWhenUsingFieldsColumn(): void
+    {
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('LIMIT is required when using the FIELDS() function');
+        SoqlBuilder::select('Object')->columns(Fields::ALL)->__toString();
+    }
+
+    public function testThatLimitNotLargerThanMaxWhenUsingFieldsColumn(): void
+    {
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('LIMIT must be less than ' . SoqlBuilder::MAX_LIMIT_FOR_FIELDS . ' when using the FIELDS() function');
+        SoqlBuilder::select('Object')
+            ->columns(Fields::ALL)
+            ->limit(SoqlBuilder::MAX_LIMIT_FOR_FIELDS + 1)
+            ->__toString();
     }
 
     public function testWhereWithOneCondition(): void

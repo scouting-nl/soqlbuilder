@@ -3,20 +3,27 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql;
 
+use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 
+/**
+ * @phpstan-type TColumn non-empty-string|Fields|self
+ */
 final readonly class SoqlBuilder implements \Stringable
 {
     public const int MAX_OFFSET = 2000;
     public const int MAX_QUERY_LENGTH = 100_000;
+    public const int MAX_LIMIT_FOR_FIELDS = 200;
 
     /**
      * @param non-empty-string $object
-     * @param list<string|self> $columns
+     * @param list<TColumn> $columns
      * @param list<Condition> $conditions
      * @param list<string> $groupBy
+     * @param positive-int|null $limit
+     * @param positive-int|null $offset
      */
     private function __construct(
         private string $object,
@@ -29,9 +36,11 @@ final readonly class SoqlBuilder implements \Stringable
     }
 
     /**
-     * @param list<string|self>|null $columns
+     * @param list<TColumn>|null $columns
      * @param list<Condition>|null $conditions
      * @param list<string>|null $groupBy
+     * @param positive-int|null $limit
+     * @param positive-int|null $offset
      */
     private function new(
         ?array $columns = null,
@@ -59,12 +68,20 @@ final readonly class SoqlBuilder implements \Stringable
         return new self($object);
     }
 
-    public function columns(string|self $column, string|self ...$columns): self
+    /**
+     * @param TColumn $column
+     * @param TColumn ...$columns
+     */
+    public function columns(string|Fields|self $column, string|Fields|self ...$columns): self
     {
         return $this->new(columns: [$column, ...\array_values($columns)]);
     }
 
-    public function addColumns(string|self $column, string|self ...$columns): self
+    /**
+     * @param TColumn $column
+     * @param TColumn ...$columns
+     */
+    public function addColumns(string|Fields|self $column, string|Fields|self ...$columns): self
     {
         return $this->new(columns: \array_merge($this->columns, [$column], \array_values($columns)));
     }
@@ -89,11 +106,17 @@ final readonly class SoqlBuilder implements \Stringable
         return $this->new(groupBy: \array_merge($this->groupBy, [$groupBy], \array_values($additionalGroupBy)));
     }
 
+    /**
+     * @param positive-int $limit
+     */
     public function limit(int $limit): self
     {
         return $this->new(limit: $limit);
     }
 
+    /**
+     * @param positive-int $offset
+     */
     public function offset(int $offset): self
     {
         if ($offset > self::MAX_OFFSET) {
@@ -114,7 +137,25 @@ final readonly class SoqlBuilder implements \Stringable
             'SELECT ' . \implode(
                 ', ',
                 \array_map(
-                    static fn (string|self $column) => $column instanceof self ? "({$column})" : $column,
+                    function (string|Fields|self $column) {
+                        if ($column instanceof self) {
+                            return "({$column})";
+                        }
+
+                        if ($column instanceof Fields) {
+                            if ($this->limit === null) {
+                                throw new RuntimeException('LIMIT is required when using the FIELDS() function');
+                            }
+
+                            if ($this->limit > self::MAX_LIMIT_FOR_FIELDS) {
+                                throw new RuntimeException('LIMIT must be less than ' . self::MAX_LIMIT_FOR_FIELDS . ' when using the FIELDS() function');
+                            }
+
+                            return $column->format();
+                        }
+
+                        return $column;
+                    },
                     $this->columns,
                 ),
             ),
