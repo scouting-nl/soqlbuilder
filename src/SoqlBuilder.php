@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql;
 
-use ScoutingNL\Salesforce\Soql\Column\Aggregate\AggregateFunction;
 use ScoutingNL\Salesforce\Soql\Column\Column;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
+use ScoutingNL\Salesforce\Soql\Column\Func\Aggregate\AggregateFunction;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;

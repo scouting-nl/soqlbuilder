@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Salesforce\Soql\Column\Aggregate;
+namespace ScoutingNL\Salesforce\Soql\Column\Func;
 
 use ScoutingNL\Salesforce\Soql\Column\Column;
 
-abstract readonly class AggregateFunction implements Column
+abstract readonly class Func implements Column
 {
     /**
      * @param non-empty-string $function

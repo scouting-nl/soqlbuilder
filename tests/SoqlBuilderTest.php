@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use ScoutingNL\Salesforce\Soql\Column\Aggregate\Avg;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
+use ScoutingNL\Salesforce\Soql\Column\Func\Aggregate\Avg;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Salesforce\Soql\Column\Aggregate;
+namespace ScoutingNL\Salesforce\Soql\Column\Func\Aggregate;
 
 final readonly class CountDistinct extends AggregateFunction
 {

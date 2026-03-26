@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace ScoutingNL\Tests\Salesforce\Soql\Column\Aggregate;
+namespace ScoutingNL\Tests\Salesforce\Soql\Column\Func\Aggregate;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use ScoutingNL\Salesforce\Soql\Column\Aggregate\AggregateFunction;
-use ScoutingNL\Salesforce\Soql\Column\Aggregate\Sum;
+use ScoutingNL\Salesforce\Soql\Column\Func\Aggregate\Sum;
+use ScoutingNL\Salesforce\Soql\Column\Func\Func;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
 #[CoversClass(Sum::class)]
-#[CoversClass(AggregateFunction::class)]
+#[CoversClass(Func::class)]
 class SumTest extends TestCase
 {
     public function testWithoutAlias(): void
