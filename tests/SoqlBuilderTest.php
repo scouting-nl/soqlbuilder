@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use ScoutingNL\Salesforce\Soql\Column\Aggregate\Avg;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
@@ -149,18 +150,18 @@ class SoqlBuilderTest extends TestCase
     public function testColumnsWithFields(): void
     {
         self::assertSameIgnoringWhitespace(
-            'SELECT Other__c.Id, FIELDS(ALL) FROM Object LIMIT 10',
-            SoqlBuilder::select('Object')->columns('Other__c.Id', Fields::ALL)->limit(10),
+            'SELECT Other__r.Id, FIELDS(ALL) FROM Object LIMIT 10',
+            SoqlBuilder::select('Object')->columns('Other__r.Id', Fields::ALL)->limit(10),
         );
     }
 
     public function testAddColumnsAfterColumnsWithFields(): void
     {
         self::assertSameIgnoringWhitespace(
-            'SELECT FIELDS(ALL), Other__c.Id FROM Object LIMIT 10',
+            'SELECT FIELDS(ALL), Other__r.Id FROM Object LIMIT 10',
             SoqlBuilder::select('Object')
                 ->columns(Fields::ALL)
-                ->addColumns('Other__c.Id')
+                ->addColumns('Other__r.Id')
                 ->limit(10),
         );
     }
@@ -168,9 +169,9 @@ class SoqlBuilderTest extends TestCase
     public function testAddColumnsWithFields(): void
     {
         self::assertSameIgnoringWhitespace(
-            'SELECT Other__c.Id, FIELDS(ALL) FROM Object LIMIT 10',
+            'SELECT Other__r.Id, FIELDS(ALL) FROM Object LIMIT 10',
             SoqlBuilder::select('Object')
-                ->columns('Other__c.Id')
+                ->columns('Other__r.Id')
                 ->addColumns(Fields::ALL)
                 ->limit(10),
         );
@@ -190,6 +191,62 @@ class SoqlBuilderTest extends TestCase
         SoqlBuilder::select('Object')
             ->columns(Fields::ALL)
             ->limit(SoqlBuilder::MAX_LIMIT_FOR_FIELDS + 1)
+            ->__toString();
+    }
+
+    public function testColumnsWithOnlyAggregateFunction(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT AVG(Field) alias FROM Object',
+            SoqlBuilder::select('Object')->columns(new Avg('Field', 'alias')),
+        );
+    }
+
+    public function testColumnsWithOnlyAggregateFunctionAndGroupBy(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT AVG(Field) alias FROM Object GROUP BY Name',
+            SoqlBuilder::select('Object')
+                ->columns(new Avg('Field', 'alias'))
+                ->groupBy('Name'),
+        );
+    }
+
+    public function testColumnsWithAggregateFunction(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Other__c, AVG(Field) alias FROM Object',
+            SoqlBuilder::select('Object')->columns('Other__c', new Avg('Field', 'alias')),
+        );
+    }
+
+    public function testAddColumnsAfterColumnsWithAggregateFunction(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT AVG(Field) alias, Other__c FROM Object',
+            SoqlBuilder::select('Object')
+                ->columns(new Avg('Field', 'alias'))
+                ->addColumns('Other__c'),
+        );
+    }
+
+    public function testAddColumnsWithAggregateFunction(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT Other__c, AVG(Field) alias FROM Object',
+            SoqlBuilder::select('Object')
+                ->columns('Other__c')
+                ->addColumns(new Avg('Field', 'alias')),
+        );
+    }
+
+    public function testThatAggregateFunctionNotValidWithLimitWithoutGroupBy(): void
+    {
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('LIMIT is not allowed when using aggregate functions without a GROUP BY');
+        SoqlBuilder::select('Object')
+            ->columns(new Avg('Field', 'alias'))
+            ->limit(10)
             ->__toString();
     }
 

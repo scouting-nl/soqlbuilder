@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Tests\Salesforce\Soql\Column;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
+#[CoversClass(Fields::class)]
 class FieldsTest extends TestCase
 {
     #[TestWith(['FIELDS(ALL)', Fields::ALL])]

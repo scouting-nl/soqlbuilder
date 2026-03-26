@@ -3,13 +3,15 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql;
 
+use ScoutingNL\Salesforce\Soql\Column\Aggregate\AggregateFunction;
+use ScoutingNL\Salesforce\Soql\Column\Column;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 
 /**
- * @phpstan-type TColumn non-empty-string|Fields|self
+ * @phpstan-type TColumn non-empty-string|Column|self
  */
 final readonly class SoqlBuilder implements \Stringable
 {
@@ -72,7 +74,7 @@ final readonly class SoqlBuilder implements \Stringable
      * @param TColumn $column
      * @param TColumn ...$columns
      */
-    public function columns(string|Fields|self $column, string|Fields|self ...$columns): self
+    public function columns(string|Column|self $column, string|Column|self ...$columns): self
     {
         return $this->new(columns: [$column, ...\array_values($columns)]);
     }
@@ -81,7 +83,7 @@ final readonly class SoqlBuilder implements \Stringable
      * @param TColumn $column
      * @param TColumn ...$columns
      */
-    public function addColumns(string|Fields|self $column, string|Fields|self ...$columns): self
+    public function addColumns(string|Column|self $column, string|Column|self ...$columns): self
     {
         return $this->new(columns: \array_merge($this->columns, [$column], \array_values($columns)));
     }
@@ -133,24 +135,22 @@ final readonly class SoqlBuilder implements \Stringable
             throw new RuntimeException('Must select at least one column');
         }
 
+        $hasFieldsColumns = false;
+        $hasAggregateFunctions = false;
+
         $elements = [
             'SELECT ' . \implode(
                 ', ',
                 \array_map(
-                    function (string|Fields|self $column) {
+                    static function (string|Column|self $column) use (&$hasFieldsColumns, &$hasAggregateFunctions) {
                         if ($column instanceof self) {
                             return "({$column})";
                         }
 
-                        if ($column instanceof Fields) {
-                            if ($this->limit === null) {
-                                throw new RuntimeException('LIMIT is required when using the FIELDS() function');
-                            }
+                        $hasFieldsColumns |= $column instanceof Fields;
+                        $hasAggregateFunctions |= $column instanceof AggregateFunction;
 
-                            if ($this->limit > self::MAX_LIMIT_FOR_FIELDS) {
-                                throw new RuntimeException('LIMIT must be less than ' . self::MAX_LIMIT_FOR_FIELDS . ' when using the FIELDS() function');
-                            }
-
+                        if ($column instanceof Column) {
                             return $column->format();
                         }
 
@@ -171,7 +171,17 @@ final readonly class SoqlBuilder implements \Stringable
         }
 
         if ($this->limit !== null) {
+            if ($hasFieldsColumns && $this->limit > self::MAX_LIMIT_FOR_FIELDS) {
+                throw new RuntimeException('LIMIT must be less than ' . self::MAX_LIMIT_FOR_FIELDS . ' when using the FIELDS() function');
+            }
+
+            if ($hasAggregateFunctions && !$this->groupBy) {
+                throw new RuntimeException('LIMIT is not allowed when using aggregate functions without a GROUP BY');
+            }
+
             $elements[] = "LIMIT {$this->limit}";
+        } elseif ($hasFieldsColumns) {
+            throw new RuntimeException('LIMIT is required when using the FIELDS() function');
         }
 
         if ($this->offset !== null) {
