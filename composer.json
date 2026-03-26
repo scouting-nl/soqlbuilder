@@ -1,4 +1,5 @@
 {
+    "name": "scouting-nl/soqlbuilder",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "stable",
