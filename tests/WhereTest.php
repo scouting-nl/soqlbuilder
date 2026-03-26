@@ -13,6 +13,7 @@ use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Like;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\Date;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
 use ScoutingNL\Salesforce\Soql\Value\Value;
@@ -260,7 +261,7 @@ class WhereTest extends TestCase
 
     public function testTooLongValueComparisonFails(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Condition is too long');
 
         Where::equals('test', \str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1))->__toString();
@@ -268,7 +269,7 @@ class WhereTest extends TestCase
 
     public function testTooLongIdentifierComparisonFails(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Condition is too long');
 
         Where::equals(\str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1), 'test')->__toString();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScoutingNL\Salesforce\Soql\Condition\Comparing;
 
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
 use ScoutingNL\Salesforce\Soql\Value\Value;
 
@@ -18,7 +19,7 @@ class In extends Condition
         private bool $negate = false,
     ) {
         if (\is_array($this->value) && \count($this->value) === 0) {
-            throw new \RuntimeException('In must have at least one value');
+            throw new RuntimeException('In must have at least one value');
         }
     }
 

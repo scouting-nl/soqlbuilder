@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\TestWith;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\Date;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
 use ScoutingNL\Salesforce\Soql\Value\Value;
@@ -224,7 +225,7 @@ class CompareTest extends TestCase
     #[TestWith([CompareOperator::LESS_EQUALS])]
     public function testComparingNullFails(CompareOperator $operator): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('NULL is only allowed for equal or not equal comparison');
 
         new Compare('c', $operator, null);
@@ -240,7 +241,7 @@ class CompareTest extends TestCase
     #[TestWith([CompareOperator::LESS_EQUALS, false])]
     public function testComparingBooleanFails(CompareOperator $operator, bool $value): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Booleans are only allowed for equal or not equal comparison');
 
         new Compare('c', $operator, $value);
@@ -248,7 +249,7 @@ class CompareTest extends TestCase
 
     public function testTooLongValueComparisonFails(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Condition is too long');
 
         (new Compare('test', CompareOperator::EQUALS, \str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1)))->__toString();
@@ -256,7 +257,7 @@ class CompareTest extends TestCase
 
     public function testTooLongIdentifierComparisonFails(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Condition is too long');
 
         (new Compare(\str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1), CompareOperator::EQUALS, 'test'))->__toString();

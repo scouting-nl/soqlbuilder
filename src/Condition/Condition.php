@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql\Condition;
 
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\Value;
 
 abstract class Condition implements \Stringable
@@ -44,7 +45,7 @@ abstract class Condition implements \Stringable
         $string = $this->toString();
 
         if (\mb_strlen($string) > self::MAX_CONDITION_LENGTH) {
-            throw new \RuntimeException('Condition is too long');
+            throw new RuntimeException('Condition is too long');
         }
 
         return $string;

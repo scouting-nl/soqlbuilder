@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
 use ScoutingNL\Salesforce\Soql\Where;
 
@@ -12,7 +14,7 @@ class SoqlBuilderTest extends TestCase
 {
     public function testSelectWithoutColumns(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Must select at least one column');
         SoqlBuilder::select('Object')->__toString();
     }
@@ -305,7 +307,7 @@ class SoqlBuilderTest extends TestCase
 
     public function testBuilderFailsWithEmptyFrom(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('Object cannot be empty');
 
         SoqlBuilder::select('');
@@ -313,7 +315,7 @@ class SoqlBuilderTest extends TestCase
 
     public function testBuilderFailsWithTooLargeOffset(): void
     {
-        self::expectException(\InvalidArgumentException::class);
+        self::expectException(InvalidArgumentException::class);
         self::expectExceptionMessage('Offset must be less than or equal to ' . SoqlBuilder::MAX_OFFSET);
 
         SoqlBuilder::select('o')->offset(SoqlBuilder::MAX_OFFSET + 1);
@@ -321,7 +323,7 @@ class SoqlBuilderTest extends TestCase
 
     public function testTooLongQueryFails(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage(' is too long');
 
         SoqlBuilder::select('o')

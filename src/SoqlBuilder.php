@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace ScoutingNL\Salesforce\Soql;
 
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 
 final readonly class SoqlBuilder implements \Stringable
 {
@@ -51,7 +53,7 @@ final readonly class SoqlBuilder implements \Stringable
     public static function select(string $object): self
     {
         if ($object === '') {
-            throw new \RuntimeException('Object cannot be empty');
+            throw new RuntimeException('Object cannot be empty');
         }
 
         return new self($object);
@@ -95,7 +97,7 @@ final readonly class SoqlBuilder implements \Stringable
     public function offset(int $offset): self
     {
         if ($offset > self::MAX_OFFSET) {
-            throw new \InvalidArgumentException('Offset must be less than or equal to ' . self::MAX_OFFSET);
+            throw new InvalidArgumentException('Offset must be less than or equal to ' . self::MAX_OFFSET);
         }
 
         return $this->new(offset: $offset);
@@ -105,7 +107,7 @@ final readonly class SoqlBuilder implements \Stringable
     public function __toString(): string
     {
         if (!$this->columns) {
-            throw new \RuntimeException('Must select at least one column');
+            throw new RuntimeException('Must select at least one column');
         }
 
         $elements = [
@@ -138,7 +140,7 @@ final readonly class SoqlBuilder implements \Stringable
         $query = \implode("\n", $elements);
 
         if (\mb_strlen($query) > self::MAX_QUERY_LENGTH) {
-            throw new \RuntimeException('Query is too long');
+            throw new RuntimeException('Query is too long');
         }
 
         return $query;

@@ -6,6 +6,7 @@ namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\Date;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
@@ -43,7 +44,7 @@ class InTest extends TestCase
 
     public function testFailWhenNoValuesInArray(): void
     {
-        self::expectException(\RuntimeException::class);
+        self::expectException(RuntimeException::class);
         self::expectExceptionMessage('In must have at least one value');
         new In('a', []);
     }

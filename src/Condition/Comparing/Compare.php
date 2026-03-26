@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace ScoutingNL\Salesforce\Soql\Condition\Comparing;
 
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\Value;
 
 class Compare extends Condition
@@ -14,11 +15,11 @@ class Compare extends Condition
         private string|Value|\Stringable|int|\UnitEnum|bool|null $value,
     ) {
         if ($this->value === null && !$this->operator->allowNull()) {
-            throw new \RuntimeException('NULL is only allowed for equal or not equal comparison');
+            throw new RuntimeException('NULL is only allowed for equal or not equal comparison');
         }
 
         if (\is_bool($this->value) && !$this->operator->allowBoolean()) {
-            throw new \RuntimeException('Booleans are only allowed for equal or not equal comparison');
+            throw new RuntimeException('Booleans are only allowed for equal or not equal comparison');
         }
     }
 
