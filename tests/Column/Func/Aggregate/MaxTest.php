@@ -21,4 +21,14 @@ class MaxTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('MAX(Test) alias', (new Max('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('MAX(Test)', (new Max('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('MAX(Test)', (new Max('Test', 'alias'))->formatWithoutAlias());
+    }
 }

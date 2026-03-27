@@ -21,4 +21,14 @@ class SumTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('SUM(Test) alias', (new Sum('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('SUM(Test)', (new Sum('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('SUM(Test)', (new Sum('Test', 'alias'))->formatWithoutAlias());
+    }
 }

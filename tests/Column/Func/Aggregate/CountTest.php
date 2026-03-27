@@ -12,7 +12,7 @@ use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 #[CoversClass(Func::class)]
 class CountTest extends TestCase
 {
-    public function testWIthoutColumnWithoutAlias(): void
+    public function testWithoutColumnWithoutAlias(): void
     {
         self::assertSameIgnoringWhitespace('COUNT()', (new Count())->format());
     }
@@ -30,5 +30,25 @@ class CountTest extends TestCase
     public function testWithColumnWithAlias(): void
     {
         self::assertSameIgnoringWhitespace('COUNT(Test) alias', (new Count('Test', 'alias'))->format());
+    }
+
+    public function testWithoutColumnWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT()', (new Count())->formatWithoutAlias());
+    }
+
+    public function testWithoutColumnWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT()', (new Count(alias: 'alias'))->formatWithoutAlias());
+    }
+
+    public function testWithColumnWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT(Test)', (new Count('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithColumnWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT(Test)', (new Count('Test', 'alias'))->formatWithoutAlias());
     }
 }

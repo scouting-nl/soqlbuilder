@@ -21,4 +21,14 @@ class CountDistinctTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('COUNT_DISTINCT(Test) alias', (new CountDistinct('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT_DISTINCT(Test)', (new CountDistinct('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('COUNT_DISTINCT(Test)', (new CountDistinct('Test', 'alias'))->formatWithoutAlias());
+    }
 }

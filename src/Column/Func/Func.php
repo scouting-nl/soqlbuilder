@@ -16,9 +16,14 @@ abstract readonly class Func implements Column
     {
     }
 
+    public function formatWithoutAlias(): string
+    {
+        return $this->function . '(' . ($this->column ?? '') . ')';
+    }
+
     #[\Override]
     public function format(): string
     {
-        return $this->function . '(' . ($this->column ?? '') . ')' . ($this->alias !== null ? " {$this->alias}" : '');
+        return $this->formatWithoutAlias() . ($this->alias !== null ? " {$this->alias}" : '');
     }
 }

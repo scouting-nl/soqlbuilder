@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace ScoutingNL\Salesforce\Soql\Condition;
 
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DateFunction;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\Value;
 
@@ -10,7 +11,16 @@ abstract class Condition implements \Stringable
 {
     public const int MAX_CONDITION_LENGTH = 4000;
 
-    protected function escapeLiteral(string|Value|\Stringable|int|\UnitEnum|bool|null $value): string
+    protected function escapeColumn(string|DateFunction $column): string
+    {
+        if ($column instanceof DateFunction) {
+            return $column->formatWithoutAlias();
+        }
+
+        return $column;
+    }
+
+    protected function escapeValue(string|Value|\Stringable|int|\UnitEnum|bool|null $value): string
     {
         if ($value instanceof Value) {
             return $value->format();

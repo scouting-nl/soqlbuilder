@@ -21,4 +21,14 @@ class AvgTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('AVG(Test) alias', (new Avg('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('AVG(Test)', (new Avg('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('AVG(Test)', (new Avg('Test', 'alias'))->formatWithoutAlias());
+    }
 }

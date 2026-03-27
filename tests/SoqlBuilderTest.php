@@ -6,6 +6,8 @@ namespace ScoutingNL\Tests\Salesforce\Soql;
 use PHPUnit\Framework\Attributes\CoversClass;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Column\Func\Aggregate\Avg;
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DayInMonth;
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DayInYear;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
@@ -250,6 +252,16 @@ class SoqlBuilderTest extends TestCase
             ->__toString();
     }
 
+    public function testColumnWithOneDateFunctionColumn(): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'SELECT DAY_IN_MONTH(c) alias FROM Object GROUP BY DAY_IN_MONTH(c)',
+            SoqlBuilder::select('Object')
+                ->columns(new DayInMonth('c', 'alias'))
+                ->groupBy(new DayInMonth('c')),
+        );
+    }
+
     public function testWhereWithOneCondition(): void
     {
         self::assertSameIgnoringWhitespace(
@@ -352,7 +364,7 @@ class SoqlBuilderTest extends TestCase
                             Where::notEquals('f', false),
                         ),
                         Where::less('c', 'v3'),
-                        Where::greaterEqual('d', -10),
+                        Where::greaterEquals('d', -10),
                     ),
                 )
                 ->groupBy('Name'),
@@ -362,9 +374,22 @@ class SoqlBuilderTest extends TestCase
     public function testComplexQuery(): void
     {
         self::assertSameIgnoringWhitespace(
-            "SELECT Id FROM Object WHERE a = 'v1' AND b > 10 AND ((e = NULL AND f != FALSE) OR c < 'v3' OR d >= -10) GROUP BY Name, Other",
+            <<<'SOQL'
+            SELECT Id, DAY_IN_MONTH(c) alias
+            FROM Object
+            WHERE
+                a = 'v1'
+                AND b > 10
+                AND (
+                    (e = NULL AND f != FALSE)
+                    OR c < 'v3'
+                    OR d >= -10
+                )
+            GROUP BY Name, Other, DAY_IN_MONTH(c)
+            SOQL,
             SoqlBuilder::select('Object')
                 ->columns('Id')
+                ->addColumns(new DayInMonth('c', 'alias'))
                 ->where(
                     Where::equals('a', 'v1'),
                     Where::greater('b', 10),
@@ -376,11 +401,11 @@ class SoqlBuilderTest extends TestCase
                             Where::notEquals('f', false),
                         ),
                         Where::less('c', 'v3'),
-                        Where::greaterEqual('d', -10),
+                        Where::greaterEquals('d', -10),
                     ),
                 )
                 ->groupBy('Name')
-                ->addGroupBy('Other'),
+                ->addGroupBy('Other', new DayInMonth('c')),
         );
     }
 
@@ -441,6 +466,17 @@ class SoqlBuilderTest extends TestCase
 
         SoqlBuilder::select('o')
             ->columns(\str_repeat('x', SoqlBuilder::MAX_QUERY_LENGTH + 1))
+            ->__toString();
+    }
+
+    public function testFailsWhenDateFunctionsInSelectAreMissingFromGroupBy(): void
+    {
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('Selected date function columns (DAY_IN_YEAR(c)) must also be in the GROUP BY');
+
+        SoqlBuilder::select('o')
+            ->columns(new DayInMonth('c', 'alias'), new DayInYear('c'))
+            ->groupBy(new DayInMonth('c'))
             ->__toString();
     }
 }

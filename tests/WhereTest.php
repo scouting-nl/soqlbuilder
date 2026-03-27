@@ -6,6 +6,7 @@ namespace ScoutingNL\Tests\Salesforce\Soql;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DayInMonth;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_And;
 use ScoutingNL\Salesforce\Soql\Condition\Combining\_Or;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Compare;
@@ -13,8 +14,10 @@ use ScoutingNL\Salesforce\Soql\Condition\Comparing\CompareOperator;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\Like;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
+use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\Date;
+use ScoutingNL\Salesforce\Soql\Value\DateTime\DateLiteral;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
 use ScoutingNL\Salesforce\Soql\Value\Value;
 use ScoutingNL\Salesforce\Soql\Where;
@@ -65,6 +68,11 @@ class WhereTest extends TestCase
         );
     }
 
+    public function testEqualsWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c = TODAY', Where::equals('c', DateLiteral::today()));
+    }
+
     #[TestWith(['c != NULL', null])]
     #[TestWith(['c != TRUE', true])]
     #[TestWith(['c != FALSE', false])]
@@ -99,6 +107,11 @@ class WhereTest extends TestCase
         );
     }
 
+    public function testNotEqualsWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c != TODAY', Where::notEquals('c', DateLiteral::today()));
+    }
+
     #[TestWith(["c > ''", ''])]
     #[TestWith(["c > 'value'", 'value'])]
     #[TestWith(['c > 10', 10])]
@@ -130,6 +143,11 @@ class WhereTest extends TestCase
         );
     }
 
+    public function testGreaterWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c > TODAY', Where::greater('c', DateLiteral::today()));
+    }
+
     #[TestWith(["c >= ''", ''])]
     #[TestWith(["c >= 'value'", 'value'])]
     #[TestWith(['c >= 10', 10])]
@@ -139,16 +157,16 @@ class WhereTest extends TestCase
     #[TestWith(["c >= 'str1'", TestStringEnum::STR1])]
     #[TestWith(['c >= 2024-11-24T19:23:54+02:00', new DateTime(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
     #[TestWith(['c >= 2024-11-24', new Date(new \DateTimeImmutable('2024-11-24T19:23:54+0200'))])]
-    public function testGreaterEqual(string $expected, int|string|Value|\Stringable|\UnitEnum $value): void
+    public function testGreaterEquals(string $expected, int|string|Value|\Stringable|\UnitEnum $value): void
     {
-        self::assertSameIgnoringWhitespace($expected, Where::greaterEqual('c', $value));
+        self::assertSameIgnoringWhitespace($expected, Where::greaterEquals('c', $value));
     }
 
-    public function testGreaterEqualWithStringable(): void
+    public function testGreaterEqualsWithStringable(): void
     {
         self::assertSameIgnoringWhitespace(
             "c >= 'value'",
-            Where::greaterEqual(
+            Where::greaterEquals(
                 'c',
                 new class implements \Stringable {
                     #[\Override]
@@ -159,6 +177,11 @@ class WhereTest extends TestCase
                 },
             ),
         );
+    }
+
+    public function testGreaterEqualsWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c >= TODAY', Where::greaterEquals('c', DateLiteral::today()));
     }
 
     #[TestWith(["c < ''", ''])]
@@ -192,6 +215,11 @@ class WhereTest extends TestCase
         );
     }
 
+    public function testLessWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c < TODAY', Where::less('c', DateLiteral::today()));
+    }
+
     #[TestWith(["c <= ''", ''])]
     #[TestWith(["c <= 'value'", 'value'])]
     #[TestWith(['c <= 10', 10])]
@@ -223,6 +251,11 @@ class WhereTest extends TestCase
         );
     }
 
+    public function testLessEqualWithDateLiteral(): void
+    {
+        self::assertSameIgnoringWhitespace('c <= TODAY', Where::lessEquals('c', DateLiteral::today()));
+    }
+
     public function testLike(): void
     {
         self::assertSameIgnoringWhitespace("a LIKE '%v1%'", Where::like('a', '%v1%'));
@@ -241,6 +274,19 @@ class WhereTest extends TestCase
     public function testNotIn(): void
     {
         self::assertSameIgnoringWhitespace("a NOT IN ('v1')", Where::notIn('a', ['v1']));
+    }
+
+    /**
+     * @param non-empty-string|null $alias
+     */
+    #[TestWith([])]
+    #[TestWith(['alias'])]
+    public function testCompareWithDateFunction(?string $alias = null): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'DAY_IN_MONTH(c) = 10',
+            Where::equals(new DayInMonth('c', $alias), 10),
+        );
     }
 
     public function testAnd(): void
@@ -273,5 +319,12 @@ class WhereTest extends TestCase
         self::expectExceptionMessage('Condition is too long');
 
         Where::equals(\str_repeat('x', Condition::MAX_CONDITION_LENGTH + 1), 'test')->__toString();
+    }
+
+    public function testCompareBetweenDateFunctionAndDateLiteralFails(): void
+    {
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionMessage('Cannot compare a date function with a date literal');
+        Where::equals(new DayInMonth('c'), DateLiteral::today())->__toString();
     }
 }

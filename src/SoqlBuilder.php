@@ -6,12 +6,14 @@ namespace ScoutingNL\Salesforce\Soql;
 use ScoutingNL\Salesforce\Soql\Column\Column;
 use ScoutingNL\Salesforce\Soql\Column\Fields;
 use ScoutingNL\Salesforce\Soql\Column\Func\Aggregate\AggregateFunction;
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DateFunction;
 use ScoutingNL\Salesforce\Soql\Condition\Condition;
 use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 
 /**
  * @phpstan-type TColumn non-empty-string|Column|self
+ * @phpstan-type TGroupBy non-empty-string|DateFunction
  */
 final readonly class SoqlBuilder implements \Stringable
 {
@@ -23,7 +25,7 @@ final readonly class SoqlBuilder implements \Stringable
      * @param non-empty-string $object
      * @param list<TColumn> $columns
      * @param list<Condition> $conditions
-     * @param list<string> $groupBy
+     * @param list<TGroupBy> $groupBy
      * @param positive-int|null $limit
      * @param positive-int|null $offset
      */
@@ -40,7 +42,7 @@ final readonly class SoqlBuilder implements \Stringable
     /**
      * @param list<TColumn>|null $columns
      * @param list<Condition>|null $conditions
-     * @param list<string>|null $groupBy
+     * @param list<TGroupBy>|null $groupBy
      * @param positive-int|null $limit
      * @param positive-int|null $offset
      */
@@ -98,12 +100,20 @@ final readonly class SoqlBuilder implements \Stringable
         return $this->new(conditions: \array_merge($this->conditions, [$condition], \array_values($conditions)));
     }
 
-    public function groupBy(string $groupBy, string ...$additionalGroupBy): self
+    /**
+     * @param TGroupBy $groupBy
+     * @param TGroupBy ...$additionalGroupBy
+     */
+    public function groupBy(string|DateFunction $groupBy, string|DateFunction ...$additionalGroupBy): self
     {
         return $this->new(groupBy: [$groupBy, ...\array_values($additionalGroupBy)]);
     }
 
-    public function addGroupBy(string $groupBy, string ...$additionalGroupBy): self
+    /**
+     * @param TGroupBy $groupBy
+     * @param TGroupBy ...$additionalGroupBy
+     */
+    public function addGroupBy(string|DateFunction $groupBy, string|DateFunction ...$additionalGroupBy): self
     {
         return $this->new(groupBy: \array_merge($this->groupBy, [$groupBy], \array_values($additionalGroupBy)));
     }
@@ -137,12 +147,13 @@ final readonly class SoqlBuilder implements \Stringable
 
         $hasFieldsColumns = false;
         $hasAggregateFunctions = false;
+        $dateFunctionsInSelect = [];
 
         $elements = [
             'SELECT ' . \implode(
                 ', ',
                 \array_map(
-                    static function (string|Column|self $column) use (&$hasFieldsColumns, &$hasAggregateFunctions) {
+                    static function (string|Column|self $column) use (&$hasFieldsColumns, &$hasAggregateFunctions, &$dateFunctionsInSelect) {
                         if ($column instanceof self) {
                             return "({$column})";
                         }
@@ -151,6 +162,10 @@ final readonly class SoqlBuilder implements \Stringable
                         $hasAggregateFunctions |= $column instanceof AggregateFunction;
 
                         if ($column instanceof Column) {
+                            if ($column instanceof DateFunction) {
+                                $dateFunctionsInSelect[$column->formatWithoutAlias()] = true;
+                            }
+
                             return $column->format();
                         }
 
@@ -167,7 +182,29 @@ final readonly class SoqlBuilder implements \Stringable
         }
 
         if ($this->groupBy) {
-            $elements[] = 'GROUP BY ' . \implode(', ', $this->groupBy);
+            $elements[] = 'GROUP BY ' . \implode(
+                ', ',
+                \array_map(
+                    static function (string|DateFunction $column) use (&$dateFunctionsInSelect) {
+                        if ($column instanceof DateFunction) {
+                            $formatted = $column->formatWithoutAlias();
+
+                            if (isset($dateFunctionsInSelect[$formatted])) {
+                                unset($dateFunctionsInSelect[$formatted]);
+                            }
+
+                            return $formatted;
+                        }
+
+                        return $column;
+                    },
+                    $this->groupBy,
+                ),
+            );
+        }
+
+        if ($dateFunctionsInSelect) {
+            throw new RuntimeException('Selected date function columns (' . \implode(', ', \array_keys($dateFunctionsInSelect)) . ') must also be in the GROUP BY');
         }
 
         if ($this->limit !== null) {

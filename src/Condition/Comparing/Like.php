@@ -17,7 +17,7 @@ class Like extends Condition
     #[\Override]
     public function toString(): string
     {
-        $value = $this->escapeLiteral($this->value);
+        $value = $this->escapeValue($this->value);
         $expr = "{$this->column} LIKE {$value}";
 
         if ($this->negate) {

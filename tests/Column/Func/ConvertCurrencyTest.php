@@ -21,4 +21,14 @@ class ConvertCurrencyTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('convertCurrency(Test) alias', (new ConvertCurrency('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('convertCurrency(Test)', (new ConvertCurrency('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('convertCurrency(Test)', (new ConvertCurrency('Test', 'alias'))->formatWithoutAlias());
+    }
 }

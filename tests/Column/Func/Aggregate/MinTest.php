@@ -21,4 +21,14 @@ class MinTest extends TestCase
     {
         self::assertSameIgnoringWhitespace('MIN(Test) alias', (new Min('Test', 'alias'))->format());
     }
+
+    public function testWithoutAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('MIN(Test)', (new Min('Test'))->formatWithoutAlias());
+    }
+
+    public function testWithAliasFormatWithoutAlias(): void
+    {
+        self::assertSameIgnoringWhitespace('MIN(Test)', (new Min('Test', 'alias'))->formatWithoutAlias());
+    }
 }

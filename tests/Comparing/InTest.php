@@ -5,10 +5,13 @@ namespace ScoutingNL\Tests\Salesforce\Soql\Comparing;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
+use ScoutingNL\Salesforce\Soql\Column\Func\Date\DayInMonth;
 use ScoutingNL\Salesforce\Soql\Condition\Comparing\In;
+use ScoutingNL\Salesforce\Soql\Exception\InvalidArgumentException;
 use ScoutingNL\Salesforce\Soql\Exception\RuntimeException;
 use ScoutingNL\Salesforce\Soql\SoqlBuilder;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\Date;
+use ScoutingNL\Salesforce\Soql\Value\DateTime\DateLiteral;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateTime;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
@@ -42,10 +45,30 @@ class InTest extends TestCase
         );
     }
 
+    /**
+     * @param non-empty-string|null $alias
+     */
+    #[TestWith([])]
+    #[TestWith(['alias'])]
+    public function testWithDateFunction(?string $alias = null): void
+    {
+        self::assertSameIgnoringWhitespace(
+            'DAY_IN_MONTH(c) IN (10, 20)',
+            new In(new DayInMonth('c', $alias), [10, 20]),
+        );
+    }
+
     public function testFailWhenNoValuesInArray(): void
     {
         self::expectException(RuntimeException::class);
         self::expectExceptionMessage('In must have at least one value');
         new In('a', []);
+    }
+
+    public function testDateFunctionWithDateLiteralValueFails(): void
+    {
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionMessage('Cannot compare a date function with a date literal');
+        new In(new DayInMonth('c'), [10, DateLiteral::today()]);
     }
 }
