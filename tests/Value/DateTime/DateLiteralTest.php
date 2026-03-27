@@ -4,21 +4,35 @@ declare(strict_types=1);
 namespace ScoutingNL\Tests\Salesforce\Soql\Value\DateTime;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\TestWith;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateLiteral;
 use ScoutingNL\Salesforce\Soql\Value\DateTime\DateUnit;
 use ScoutingNL\Tests\Salesforce\Soql\TestCase;
 
 class DateLiteralTest extends TestCase
 {
-    #[TestWith(['TODAY', DateLiteral::TODAY])]
-    #[TestWith(['TOMORROW', DateLiteral::TOMORROW])]
-    #[TestWith(['YESTERDAY', DateLiteral::YESTERDAY])]
-    #[TestWith(['LAST_90_DAYS', DateLiteral::LAST_90_DAYS])]
-    #[TestWith(['NEXT_90_DAYS', DateLiteral::NEXT_90_DAYS])]
-    public function testToday(string $expected, DateLiteral $dateLiteral): void
+    public function testToday(): void
     {
-        self::assertSame($expected, $dateLiteral->format());
+        self::assertSame('TODAY', DateLiteral::today()->format());
+    }
+
+    public function testTomorrow(): void
+    {
+        self::assertSame('TOMORROW', DateLiteral::tomorrow()->format());
+    }
+
+    public function testYesterday(): void
+    {
+        self::assertSame('YESTERDAY', DateLiteral::yesterday()->format());
+    }
+
+    public function testNext90Days(): void
+    {
+        self::assertSame('NEXT_90_DAYS', DateLiteral::next90Days()->format());
+    }
+
+    public function testLast90Days(): void
+    {
+        self::assertSame('LAST_90_DAYS', DateLiteral::last90Days()->format());
     }
 
     #[DataProvider('dateUnitProvider')]
